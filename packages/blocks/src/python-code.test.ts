@@ -15,7 +15,7 @@ import type {
   InputTextBlock,
 } from './blocks/input-blocks'
 import type { SqlBlock } from './blocks/sql-blocks'
-import type { VisualizationBlock } from './blocks/visualization-blocks'
+import { type VisualizationBlock, VisualizationBlockError } from './blocks/visualization-blocks'
 import { createPythonCode } from './python-code'
 
 describe('createPythonCode', () => {
@@ -878,7 +878,7 @@ describe('createPythonCode', () => {
       `)
     })
 
-    it('returns empty string for visualization block without variable name', () => {
+    it('throws error for visualization block without variable name', () => {
       const block: VisualizationBlock = {
         id: '123',
         type: 'visualization',
@@ -888,9 +888,8 @@ describe('createPythonCode', () => {
         metadata: {},
       }
 
-      const result = createPythonCode(block)
-
-      expect(result).toEqual('')
+      expect(() => createPythonCode(block)).toThrow(VisualizationBlockError)
+      expect(() => createPythonCode(block)).toThrow('deepnote_variable_name')
     })
   })
 })

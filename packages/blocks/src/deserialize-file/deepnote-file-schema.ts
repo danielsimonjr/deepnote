@@ -1,12 +1,25 @@
 import { z } from 'zod'
+import { blockMetadataSchema } from './block-metadata-schemas'
+
+// Output schema - outputs can have various structures depending on type
+// Using z.unknown() is safer than z.any() as it requires explicit type assertions
+export const blockOutputSchema = z
+  .object({
+    data: z.record(z.unknown()).optional(),
+    metadata: z.record(z.unknown()).optional(),
+    name: z.string().optional(),
+    output_type: z.string().optional(),
+    text: z.union([z.string(), z.array(z.string())]).optional(),
+  })
+  .passthrough() // Allow additional fields for backward compatibility
 
 export const deepnoteBlockSchema = z.object({
   blockGroup: z.string().optional(),
   content: z.string().optional(),
   executionCount: z.number().optional(),
   id: z.string(),
-  metadata: z.record(z.any()).optional(),
-  outputs: z.array(z.any()).optional(),
+  metadata: blockMetadataSchema.optional(),
+  outputs: z.array(blockOutputSchema).optional(),
   sortingKey: z.string(),
   type: z.string(),
   version: z.number().optional(),

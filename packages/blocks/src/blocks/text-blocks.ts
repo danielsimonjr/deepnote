@@ -109,7 +109,7 @@ export interface CalloutTextBlock extends DeepnoteBlock {
 export type TextBlock = ParagraphTextBlock | HeadingTextBlock | BulletTextBlock | TodoTextBlock | CalloutTextBlock
 
 export function isTextBlock(block: DeepnoteBlock): block is TextBlock {
-  const textBlockTypes = [
+  const textBlockTypes: string[] = [
     'text-cell-p',
     'text-cell-h1',
     'text-cell-h2',
@@ -119,7 +119,7 @@ export function isTextBlock(block: DeepnoteBlock): block is TextBlock {
     'text-cell-callout',
   ]
 
-  return textBlockTypes.includes(block.type.toLowerCase())
+  return textBlockTypes.includes(block.type)
 }
 
 function escapeMarkdown(text: string): string {
@@ -144,8 +144,9 @@ export function createMarkdownForTextBlock(block: TextBlock): string {
   }
 
   if (block.type === 'text-cell-todo') {
-    const metadata = block.metadata as TodoTextBlockMetadata
-    const checkbox = metadata.checked ? '[x]' : '[ ]'
+    // Type narrowing: block is TodoTextBlock when type is 'text-cell-todo'
+    const todoBlock = block as TodoTextBlock
+    const checkbox = todoBlock.metadata.checked ? '[x]' : '[ ]'
 
     return `- ${checkbox} ${escapeMarkdown(block.content)}`
   }
