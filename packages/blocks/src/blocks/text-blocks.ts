@@ -122,6 +122,41 @@ export function isTextBlock(block: DeepnoteBlock): block is TextBlock {
   return textBlockTypes.includes(block.type)
 }
 
+/**
+ * Type guard for TodoTextBlock.
+ */
+export function isTodoTextBlock(block: DeepnoteBlock): block is TodoTextBlock {
+  return block.type === 'text-cell-todo'
+}
+
+/**
+ * Type guard for CalloutTextBlock.
+ */
+export function isCalloutTextBlock(block: DeepnoteBlock): block is CalloutTextBlock {
+  return block.type === 'text-cell-callout'
+}
+
+/**
+ * Type guard for HeadingTextBlock (any heading level).
+ */
+export function isHeadingTextBlock(block: DeepnoteBlock): block is HeadingTextBlock {
+  return block.type === 'text-cell-h1' || block.type === 'text-cell-h2' || block.type === 'text-cell-h3'
+}
+
+/**
+ * Type guard for BulletTextBlock.
+ */
+export function isBulletTextBlock(block: DeepnoteBlock): block is BulletTextBlock {
+  return block.type === 'text-cell-bullet'
+}
+
+/**
+ * Type guard for ParagraphTextBlock.
+ */
+export function isParagraphTextBlock(block: DeepnoteBlock): block is ParagraphTextBlock {
+  return block.type === 'text-cell-p'
+}
+
 function escapeMarkdown(text: string): string {
   return text.replace(/([\\`*_{}[\]()#+\-.!|>])/g, '\\$1')
 }
@@ -143,11 +178,8 @@ export function createMarkdownForTextBlock(block: TextBlock): string {
     return `- ${escapeMarkdown(block.content)}`
   }
 
-  if (block.type === 'text-cell-todo') {
-    // Type narrowing: block is TodoTextBlock when type is 'text-cell-todo'
-    const todoBlock = block as TodoTextBlock
-    const checkbox = todoBlock.metadata.checked ? '[x]' : '[ ]'
-
+  if (isTodoTextBlock(block)) {
+    const checkbox = block.metadata.checked ? '[x]' : '[ ]'
     return `- ${checkbox} ${escapeMarkdown(block.content)}`
   }
 
