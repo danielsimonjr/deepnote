@@ -18,6 +18,15 @@ export {
   validatePythonVariableName,
 } from './blocks/python-utils'
 export type { TableState } from './blocks/table-state'
+// Text block type guards
+export {
+  isBulletTextBlock,
+  isCalloutTextBlock,
+  isHeadingTextBlock,
+  isParagraphTextBlock,
+  isTextBlock,
+  isTodoTextBlock,
+} from './blocks/text-blocks'
 export { VisualizationBlockError } from './blocks/visualization-blocks'
 export type { DeepnoteBlock, DeepnoteFile } from './deserialize-file/deepnote-file-schema'
 export { deepnoteBlockSchema, deepnoteFileSchema } from './deserialize-file/deepnote-file-schema'
@@ -27,3 +36,19 @@ export {
 } from './deserialize-file/deserialize-deepnote-file'
 export { createMarkdown, stripMarkdown } from './markdown'
 export { createPythonCode } from './python-code'
+// Branded ID types
+export type { BlockId, IntegrationId, NotebookId, ProjectId } from './types/branded-ids'
+export { asBlockId, asIntegrationId, asNotebookId, asProjectId, isValidId } from './types/branded-ids'
+// Validation utilities
+export type { ValidationResult } from './validation'
+export {
+  combineValidationResults,
+  ValidationError,
+  validateDefined,
+  validateNonEmptyArray,
+  validateNonEmptyString,
+  validateNumberInRange,
+  validateOneOf,
+  validationFailure,
+  validationSuccess,
+} from './validation'
