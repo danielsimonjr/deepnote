@@ -3,25 +3,31 @@ import { basename, dirname, extname } from 'node:path'
 import type { DeepnoteFile } from '@deepnote/blocks'
 import { v4 } from 'uuid'
 import { stringify } from 'yaml'
+import { z } from 'zod'
 
 export interface ConvertIpynbFilesToDeepnoteFileOptions {
   outputPath: string
   projectName: string
 }
 
-interface IpynbFile {
-  cells: {
-    cell_type: 'code' | 'markdown'
-    execution_count?: number | null
-    metadata: Record<string, unknown>
-    // biome-ignore lint/suspicious/noExplicitAny: Jupyter notebook outputs can have various types
-    outputs: any[]
-    source: string | string[]
-  }[]
-  metadata: Record<string, unknown>
-  nbformat: number
-  nbformat_minor: number
-}
+// Zod schema for Jupyter notebook cell
+const ipynbCellSchema = z.object({
+  cell_type: z.enum(['code', 'markdown', 'raw']),
+  execution_count: z.number().nullable().optional(),
+  metadata: z.record(z.unknown()).default({}),
+  outputs: z.array(z.record(z.unknown())).default([]),
+  source: z.union([z.string(), z.array(z.string())]),
+})
+
+// Zod schema for Jupyter notebook file
+const ipynbFileSchema = z.object({
+  cells: z.array(ipynbCellSchema),
+  metadata: z.record(z.unknown()).default({}),
+  nbformat: z.number(),
+  nbformat_minor: z.number(),
+})
+
+type IpynbFile = z.infer<typeof ipynbFileSchema>
 
 /**
  * Converts multiple Jupyter Notebook (.ipynb) files into a single Deepnote project file.
@@ -54,6 +60,10 @@ export async function convertIpynbFilesToDeepnoteFile(
     const blocks = ipynb.cells.map((cell, index) => {
       const source = Array.isArray(cell.source) ? cell.source.join('') : cell.source
 
+      // Map Jupyter cell types to Deepnote block types
+      // 'raw' cells are treated as markdown (plain text) in Deepnote
+      const blockType = cell.cell_type === 'code' ? 'code' : 'markdown'
+
       const block = {
         blockGroup: v4(),
         content: source,
@@ -62,7 +72,7 @@ export async function convertIpynbFilesToDeepnoteFile(
         metadata: {},
         outputs: cell.cell_type === 'code' ? cell.outputs : undefined,
         sortingKey: createSortingKey(index),
-        type: cell.cell_type === 'code' ? 'code' : 'markdown',
+        type: blockType,
         version: 1,
       }
 
@@ -99,13 +109,26 @@ async function parseIpynbFile(filePath: string): Promise<IpynbFile> {
     throw new Error(`Failed to read ${filePath}: ${message}`)
   }
 
+  let parsed: unknown
   try {
-    return JSON.parse(ipynbJson) as IpynbFile
+    parsed = JSON.parse(ipynbJson)
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
 
     throw new Error(`Failed to parse ${filePath}: invalid JSON - ${message}`)
   }
+
+  // Validate the parsed JSON against the Jupyter notebook schema
+  const result = ipynbFileSchema.safeParse(parsed)
+  if (!result.success) {
+    const issues = result.error.issues
+      .slice(0, 3) // Show first 3 issues to avoid overwhelming error messages
+      .map(issue => `  - ${issue.path.join('.')}: ${issue.message}`)
+      .join('\n')
+    throw new Error(`Failed to validate ${filePath}: invalid Jupyter notebook format.\n${issues}`)
+  }
+
+  return result.data
 }
 
 function createSortingKey(index: number): string {

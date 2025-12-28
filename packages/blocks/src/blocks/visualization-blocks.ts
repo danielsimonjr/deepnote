@@ -3,6 +3,13 @@ import type { DeepnoteBlock } from '../deserialize-file/deepnote-file-schema'
 import { pythonCode } from '../python-snippets'
 import { sanitizePythonVariableName } from './python-utils'
 
+export class VisualizationBlockError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'VisualizationBlockError'
+  }
+}
+
 export interface VisualizationBlockMetadata extends ExecutableBlockMetadata {
   deepnote_variable_name?: string
   deepnote_visualization_spec?: unknown
@@ -22,8 +29,16 @@ export function createPythonCodeForVisualizationBlock(block: VisualizationBlock)
   const spec = block.metadata.deepnote_visualization_spec
   const filters = block.metadata.deepnote_chart_filter?.advancedFilters ?? []
 
-  if (!variableName || !spec) {
-    return ''
+  if (!variableName) {
+    throw new VisualizationBlockError(
+      `Visualization block "${block.id}" is missing required field "deepnote_variable_name".`
+    )
+  }
+
+  if (!spec) {
+    throw new VisualizationBlockError(
+      `Visualization block "${block.id}" is missing required field "deepnote_visualization_spec".`
+    )
   }
 
   const sanitizedVariableName = sanitizePythonVariableName(variableName)

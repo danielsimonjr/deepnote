@@ -28,6 +28,9 @@ export const DATE_RANGE_INPUT_RELATIVE_RANGES = [
   { value: 'pastYear', pythonCode: pythonCode.dateRangePastYear },
 ] as const
 
+// Maximum allowed custom days to prevent unreasonable date ranges
+export const MAX_CUSTOM_DAYS = 36500 // ~100 years
+
 export function isCustomDateRange(value: DateRangeInputValue): value is DateIntervalCustomString {
   if (typeof value !== 'string') {
     return false
@@ -35,7 +38,7 @@ export function isCustomDateRange(value: DateRangeInputValue): value is DateInte
 
   const days = Number.parseInt(value.split('customDays')[1] ?? '0', 10)
 
-  return value.startsWith('customDays') && !Number.isNaN(days) && days >= 0
+  return value.startsWith('customDays') && !Number.isNaN(days) && days >= 0 && days <= MAX_CUSTOM_DAYS
 }
 
 export function isValidRelativeDateInterval(value: DateRangeInputValue): value is DateIntervalString {
@@ -202,6 +205,22 @@ export function createPythonCodeForInputSliderBlock(block: InputSliderBlock): st
   const numericValue = Number(value)
   if (!Number.isFinite(numericValue)) {
     throw new Error(`Invalid numeric value for slider input: "${value}". Value must be finite.`)
+  }
+
+  // Validate against min/max bounds if defined
+  const minValue = block.metadata.deepnote_slider_min_value
+  const maxValue = block.metadata.deepnote_slider_max_value
+
+  if (minValue !== undefined && numericValue < minValue) {
+    throw new Error(
+      `Slider value ${numericValue} is below minimum ${minValue} for variable "${block.metadata.deepnote_variable_name}".`
+    )
+  }
+
+  if (maxValue !== undefined && numericValue > maxValue) {
+    throw new Error(
+      `Slider value ${numericValue} is above maximum ${maxValue} for variable "${block.metadata.deepnote_variable_name}".`
+    )
   }
 
   return `${sanitizedPythonVariableName} = ${numericValue}`
