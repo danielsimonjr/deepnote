@@ -132,31 +132,32 @@ This document outlines the remaining improvements identified during the codebase
 
 ---
 
-## Phase 4: Documentation
+## Phase 4: Documentation (Partial) ✅
 
-### 4.1 API Documentation
+### 4.1 API Documentation ✅
 
 **Tasks:**
 
-- [ ] Add JSDoc comments to all public exports
-- [ ] Document expected input/output formats
-- [ ] Add usage examples in comments
+- [x] Added JSDoc to `createPythonCode()` with full parameter descriptions and examples
+- [x] Added JSDoc to `createMarkdown()` with examples for different block types
+- [x] Added JSDoc to `stripMarkdown()` with usage examples
+- [ ] Add JSDoc to remaining public exports (future)
 
 ### 4.2 Architecture Documentation
 
 **Tasks:**
 
-- [ ] Document the block system architecture
-- [ ] Document the conversion pipeline
-- [ ] Add diagrams for data flow
+- [ ] Document the block system architecture (future)
+- [ ] Document the conversion pipeline (future)
+- [ ] Add diagrams for data flow (future)
 
 ### 4.3 Error Documentation
 
 **Tasks:**
 
-- [ ] Document all error types and their meanings
-- [ ] Add troubleshooting guide for common errors
-- [ ] Document validation rules
+- [ ] Document all error types and their meanings (future)
+- [ ] Add troubleshooting guide for common errors (future)
+- [ ] Document validation rules (future)
 
 ---
 
