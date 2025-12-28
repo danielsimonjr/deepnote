@@ -45,13 +45,64 @@ export function isValidRelativeDateInterval(value: DateRangeInputValue): value i
   return typeof value === 'string' && DATE_RANGE_INPUT_RELATIVE_RANGES.some(range => range.value === value)
 }
 
-export function isValidAbsoluteDateRange(value: DateRangeInputValue): value is DateTimeStringArray {
+/**
+ * Validates that a date string represents an actual valid date.
+ * @param dateStr - Date string in YYYY-MM-DD format
+ * @returns true if the date is valid, false otherwise
+ */
+export function isValidDate(dateStr: string): boolean {
+  if (!dateStr) return true // Empty strings are allowed
+
   const YYYY_MM_DD_REGEX = /^\d{4}-\d{2}-\d{2}$/
-  return (
-    Array.isArray(value) &&
-    value.length === 2 &&
-    value.every(v => typeof v === 'string' && (v === '' || YYYY_MM_DD_REGEX.test(v)))
-  )
+  if (!YYYY_MM_DD_REGEX.test(dateStr)) {
+    return false
+  }
+
+  // Parse the date components
+  const [year, month, day] = dateStr.split('-').map(Number)
+
+  // Create a date object and verify it matches the input
+  // This catches invalid dates like 2024-02-30 or 2024-13-01
+  const date = new Date(year, month - 1, day)
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
+}
+
+/**
+ * Validates that a date range has a valid order (start <= end).
+ * @param startDate - Start date string in YYYY-MM-DD format
+ * @param endDate - End date string in YYYY-MM-DD format
+ * @returns true if the range is valid (start <= end or either is empty), false otherwise
+ */
+export function isValidDateRangeOrder(startDate: string, endDate: string): boolean {
+  // Empty dates are allowed
+  if (!startDate || !endDate) return true
+
+  return new Date(startDate) <= new Date(endDate)
+}
+
+export function isValidAbsoluteDateRange(value: DateRangeInputValue): value is DateTimeStringArray {
+  if (!Array.isArray(value) || value.length !== 2) {
+    return false
+  }
+
+  const [startDate, endDate] = value
+
+  // Check that both are strings
+  if (typeof startDate !== 'string' || typeof endDate !== 'string') {
+    return false
+  }
+
+  // Validate individual dates
+  if (!isValidDate(startDate) || !isValidDate(endDate)) {
+    return false
+  }
+
+  // Validate date range order (start <= end)
+  if (!isValidDateRangeOrder(startDate, endDate)) {
+    return false
+  }
+
+  return true
 }
 
 // Input block metadata interfaces

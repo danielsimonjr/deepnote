@@ -18,6 +18,9 @@ import {
   type InputSliderBlock,
   type InputTextareaBlock,
   type InputTextBlock,
+  isValidAbsoluteDateRange,
+  isValidDate,
+  isValidDateRangeOrder,
 } from './input-blocks'
 
 describe('createPythonCodeForInputTextBlock', () => {
@@ -342,5 +345,84 @@ describe('createPythonCodeForInputDateRangeBlock', () => {
       from datetime import datetime, timedelta
       my_range = [datetime.now().date() - timedelta(days=30), datetime.now().date()]
     `)
+  })
+})
+
+describe('isValidDate', () => {
+  it('returns true for valid dates', () => {
+    expect(isValidDate('2024-01-15')).toBe(true)
+    expect(isValidDate('2024-12-31')).toBe(true)
+    expect(isValidDate('2020-02-29')).toBe(true) // Leap year
+  })
+
+  it('returns true for empty string', () => {
+    expect(isValidDate('')).toBe(true)
+  })
+
+  it('returns false for invalid date format', () => {
+    expect(isValidDate('01-15-2024')).toBe(false)
+    expect(isValidDate('2024/01/15')).toBe(false)
+    expect(isValidDate('Jan 15, 2024')).toBe(false)
+  })
+
+  it('returns false for invalid dates', () => {
+    expect(isValidDate('2024-02-30')).toBe(false) // Feb 30 doesn't exist
+    expect(isValidDate('2024-13-01')).toBe(false) // Month 13 doesn't exist
+    expect(isValidDate('2024-00-15')).toBe(false) // Month 0 doesn't exist
+    expect(isValidDate('2023-02-29')).toBe(false) // 2023 is not a leap year
+  })
+})
+
+describe('isValidDateRangeOrder', () => {
+  it('returns true when start is before end', () => {
+    expect(isValidDateRangeOrder('2024-01-01', '2024-12-31')).toBe(true)
+  })
+
+  it('returns true when start equals end', () => {
+    expect(isValidDateRangeOrder('2024-06-15', '2024-06-15')).toBe(true)
+  })
+
+  it('returns false when start is after end', () => {
+    expect(isValidDateRangeOrder('2024-12-31', '2024-01-01')).toBe(false)
+  })
+
+  it('returns true for empty dates', () => {
+    expect(isValidDateRangeOrder('', '2024-12-31')).toBe(true)
+    expect(isValidDateRangeOrder('2024-01-01', '')).toBe(true)
+    expect(isValidDateRangeOrder('', '')).toBe(true)
+  })
+})
+
+describe('isValidAbsoluteDateRange', () => {
+  it('returns true for valid date ranges', () => {
+    expect(isValidAbsoluteDateRange(['2024-01-01', '2024-12-31'])).toBe(true)
+    expect(isValidAbsoluteDateRange(['2024-06-15', '2024-06-15'])).toBe(true)
+  })
+
+  it('returns true for empty date values in range', () => {
+    expect(isValidAbsoluteDateRange(['', '2024-12-31'])).toBe(true)
+    expect(isValidAbsoluteDateRange(['2024-01-01', ''])).toBe(true)
+    expect(isValidAbsoluteDateRange(['', ''])).toBe(true)
+  })
+
+  it('returns false for non-array values', () => {
+    expect(isValidAbsoluteDateRange('2024-01-01' as unknown as [string, string])).toBe(false)
+    expect(isValidAbsoluteDateRange(null as unknown as [string, string])).toBe(false)
+  })
+
+  it('returns false for arrays with wrong length', () => {
+    expect(isValidAbsoluteDateRange(['2024-01-01'] as unknown as [string, string])).toBe(false)
+    expect(isValidAbsoluteDateRange(['2024-01-01', '2024-06-15', '2024-12-31'] as unknown as [string, string])).toBe(
+      false
+    )
+  })
+
+  it('returns false for invalid dates in range', () => {
+    expect(isValidAbsoluteDateRange(['2024-02-30', '2024-12-31'])).toBe(false) // Invalid start date
+    expect(isValidAbsoluteDateRange(['2024-01-01', '2024-13-01'])).toBe(false) // Invalid end date
+  })
+
+  it('returns false when start is after end', () => {
+    expect(isValidAbsoluteDateRange(['2024-12-31', '2024-01-01'])).toBe(false)
   })
 })

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { deepnoteFileSchema } from './deepnote-file-schema'
-import { deserializeDeepnoteFile } from './deserialize-deepnote-file'
+import { DeepnoteFileParseError, deserializeDeepnoteFile } from './deserialize-deepnote-file'
 import * as parseYamlModule from './parse-yaml'
 
 vi.mock('./parse-yaml', async () => {
@@ -52,17 +52,97 @@ describe('deserializeDeepnoteFile', () => {
     expect(() => deserializeDeepnoteFile('bad: yaml')).toThrow(/Failed to parse Deepnote file/)
   })
 
-  it('throws error if schema validation fails with field message', () => {
+  it('throws DeepnoteFileParseError if schema validation fails', () => {
     parseYaml.mockReturnValue({
       version: 1,
       blocks: [{}],
     })
 
-    expect(() => deserializeDeepnoteFile('invalid schema')).toThrow(Error)
+    expect(() => deserializeDeepnoteFile('invalid schema')).toThrow(DeepnoteFileParseError)
     expect(() => deserializeDeepnoteFile('invalid schema')).toThrow(/Failed to parse the Deepnote file:/)
   })
 
-  it('throws generic error if schema validation issues array is empty', () => {
+  it('provides access to all validation issues', () => {
+    const safeParseSpy = vi.spyOn(deepnoteFileSchema, 'safeParse').mockReturnValueOnce({
+      success: false,
+      error: {
+        issues: [
+          { path: ['field1'], message: 'Error 1', code: 'custom' },
+          { path: ['field2'], message: 'Error 2', code: 'custom' },
+        ],
+      },
+    } as unknown as ReturnType<typeof deepnoteFileSchema.safeParse>)
+
+    parseYaml.mockReturnValue({})
+
+    try {
+      deserializeDeepnoteFile('invalid')
+      expect.fail('Should have thrown')
+    } catch (error) {
+      expect(error).toBeInstanceOf(DeepnoteFileParseError)
+      const parseError = error as DeepnoteFileParseError
+      expect(parseError.issues).toHaveLength(2)
+      expect(parseError.firstIssueMessage).toBe('field1: Error 1')
+    }
+
+    safeParseSpy.mockRestore()
+  })
+
+  it('formats multiple issues in error message', () => {
+    const safeParseSpy = vi.spyOn(deepnoteFileSchema, 'safeParse').mockReturnValueOnce({
+      success: false,
+      error: {
+        issues: [
+          { path: ['blocks', 0, 'type'], message: 'Required', code: 'custom' },
+          { path: ['blocks', 1, 'id'], message: 'Invalid', code: 'custom' },
+        ],
+      },
+    } as unknown as ReturnType<typeof deepnoteFileSchema.safeParse>)
+
+    parseYaml.mockReturnValue({})
+
+    try {
+      deserializeDeepnoteFile('bad')
+      expect.fail('Should have thrown')
+    } catch (error) {
+      expect(error).toBeInstanceOf(DeepnoteFileParseError)
+      const parseError = error as DeepnoteFileParseError
+      expect(parseError.message).toContain('blocks.0.type')
+      expect(parseError.message).toContain('blocks.1.id')
+      expect(parseError.message).toContain('(block index: 0)')
+      expect(parseError.message).toContain('(block index: 1)')
+    }
+
+    safeParseSpy.mockRestore()
+  })
+
+  it('truncates issues if there are more than MAX_ISSUES_TO_SHOW', () => {
+    const issues = Array.from({ length: 10 }, (_, i) => ({
+      path: [`field${i}`],
+      message: `Error ${i}`,
+      code: 'custom',
+    }))
+
+    const safeParseSpy = vi.spyOn(deepnoteFileSchema, 'safeParse').mockReturnValueOnce({
+      success: false,
+      error: { issues },
+    } as unknown as ReturnType<typeof deepnoteFileSchema.safeParse>)
+
+    parseYaml.mockReturnValue({})
+
+    try {
+      deserializeDeepnoteFile('bad')
+      expect.fail('Should have thrown')
+    } catch (error) {
+      expect(error).toBeInstanceOf(DeepnoteFileParseError)
+      const parseError = error as DeepnoteFileParseError
+      expect(parseError.message).toContain('... and 5 more issue(s)')
+    }
+
+    safeParseSpy.mockRestore()
+  })
+
+  it('handles empty issues array gracefully', () => {
     const safeParseSpy = vi.spyOn(deepnoteFileSchema, 'safeParse').mockReturnValueOnce({
       success: false,
       error: { issues: [] },
@@ -70,28 +150,41 @@ describe('deserializeDeepnoteFile', () => {
 
     parseYaml.mockReturnValue({})
 
-    expect(() => deserializeDeepnoteFile('invalid')).toThrow('Invalid Deepnote file.')
+    try {
+      deserializeDeepnoteFile('invalid')
+      expect.fail('Should have thrown')
+    } catch (error) {
+      expect(error).toBeInstanceOf(DeepnoteFileParseError)
+      const parseError = error as DeepnoteFileParseError
+      expect(parseError.firstIssueMessage).toBe('Invalid Deepnote file')
+    }
 
     safeParseSpy.mockRestore()
   })
+})
 
-  it('formats schema validation message with path prefix if available', () => {
-    const safeParseSpy = vi.spyOn(deepnoteFileSchema, 'safeParse').mockReturnValueOnce({
-      success: false,
-      error: {
-        issues: [
-          {
-            path: ['blocks', 0, 'type'],
-            message: 'Required',
-          },
-        ],
-      },
-    } as unknown as ReturnType<typeof deepnoteFileSchema.safeParse>)
+describe('DeepnoteFileParseError', () => {
+  it('has correct name', () => {
+    const error = new DeepnoteFileParseError([{ path: ['test'], message: 'Test error', code: 'custom' }] as never)
+    expect(error.name).toBe('DeepnoteFileParseError')
+  })
 
-    parseYaml.mockReturnValue({})
+  it('includes notebook index in location hint', () => {
+    const error = new DeepnoteFileParseError([
+      { path: ['project', 'notebooks', 0, 'name'], message: 'Required', code: 'custom' },
+    ] as never)
+    expect(error.message).toContain('(notebook index: 0)')
+  })
 
-    expect(() => deserializeDeepnoteFile('bad')).toThrow('Failed to parse the Deepnote file: blocks.0.type: Required.')
+  it('includes block index in location hint', () => {
+    const error = new DeepnoteFileParseError([
+      { path: ['project', 'notebooks', 0, 'blocks', 2, 'type'], message: 'Invalid', code: 'custom' },
+    ] as never)
+    expect(error.message).toContain('(block index: 2)')
+  })
 
-    safeParseSpy.mockRestore()
+  it('shows (root) for empty path', () => {
+    const error = new DeepnoteFileParseError([{ path: [], message: 'Invalid root', code: 'custom' }] as never)
+    expect(error.message).toContain('[(root)]')
   })
 })
