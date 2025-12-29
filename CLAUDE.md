@@ -7,6 +7,8 @@ This document provides guidelines for Claude (AI assistant) when working on the 
 This is a TypeScript monorepo for Deepnote's open-source packages, managed with pnpm workspaces. The repository contains:
 
 - **packages/blocks** - Core package for working with Deepnote blocks and notebook files
+- **packages/web** - React + Vite frontend for localhost Deepnote notebook editor
+- **packages/server** - Express backend with Python kernel management
 - **packages/hello-world** - Example package
 
 ## Development Workflow
@@ -61,6 +63,17 @@ pnpm lintAndFormat:fix
 pnpm build
 ```
 
+#### Running the Web App
+
+```bash
+# Start both frontend and backend
+pnpm dev
+
+# Or run individually:
+pnpm dev:web     # Frontend at http://localhost:3000
+pnpm dev:server  # Backend at http://localhost:8000
+```
+
 ### Code Quality Standards
 
 #### Before Committing
@@ -95,6 +108,37 @@ Always run these checks before considering work complete:
 - Keep code clean and readable
 
 ## Package-Specific Information
+
+### @deepnote/web
+
+**Location:** `packages/web/`
+
+**Purpose:** React frontend for the localhost Deepnote notebook editor.
+
+**Key modules:**
+
+- `src/components/blocks/` - Block type components (Code, SQL, Text, Input widgets, etc.)
+- `src/components/notebook/` - Notebook editor container
+- `src/components/sidebar/` - File/project browser
+- `src/components/toolbar/` - Action buttons and kernel status
+- `src/stores/` - Zustand state management (notebook, kernel, UI)
+- `src/hooks/useKernel.ts` - WebSocket kernel connection hook
+
+**Tech stack:** React 18, Vite, TypeScript, TailwindCSS, Zustand, Monaco Editor
+
+### @deepnote/server
+
+**Location:** `packages/server/`
+
+**Purpose:** Express backend server with Python kernel management for code execution.
+
+**Key modules:**
+
+- `src/kernel/kernel-manager.ts` - Python kernel lifecycle management
+- `src/kernel/websocket.ts` - WebSocket handler for real-time communication
+- `src/api/router.ts` - REST API routes for files and kernels
+
+**Tech stack:** Express, WebSocket (ws), TypeScript
 
 ### @deepnote/blocks
 
