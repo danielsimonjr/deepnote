@@ -13,7 +13,7 @@
     "@deepnote/blocks": "workspace:*",
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "uuid": "^11.0.3",
+    "uuid": "^14.0.0",
     "ws": "^8.18.0",
     "yaml": "^2.6.1"
   },
