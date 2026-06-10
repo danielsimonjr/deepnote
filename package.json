@@ -16,8 +16,8 @@
     "biome:check:fix": "biome check --write .",
     "build": "pnpm -r run build",
     "dev": "pnpm --filter @deepnote/server dev & pnpm --filter @deepnote/web dev",
-    "dev:web": "pnpm --filter @deepnote/web dev",
     "dev:server": "pnpm --filter @deepnote/server dev",
+    "dev:web": "pnpm --filter @deepnote/web dev",
     "license-check": "license-checker-rseidelsohn --json --onlyAllow \"MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC\" --excludePackages \"deepnote\"",
     "lintAndFormat": "biome check . && pnpm run prettier:check",
     "lintAndFormat:fix": "biome check --write . && pnpm run prettier",
@@ -63,7 +63,11 @@
   },
   "pnpm": {
     "overrides": {
-      "glob": ">=11.1.0"
+      "defu": "^6.1.5",
+      "dompurify": "^3.4.0",
+      "flatted": "^3.4.2",
+      "glob": ">=11.1.0",
+      "minimatch@10": "^10.2.3"
     }
   }
 }
