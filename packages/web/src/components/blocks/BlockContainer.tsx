@@ -1,19 +1,20 @@
-import { Play, Trash2, GripVertical, ChevronDown } from 'lucide-react'
+import DOMPurify from 'dompurify'
+import { ChevronDown, GripVertical, Play, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { Block, useNotebookStore } from '../../stores/notebook-store'
+import { type Block, useNotebookStore } from '../../stores/notebook-store'
 import { useUIStore } from '../../stores/ui-store'
 import { CodeBlock } from './CodeBlock'
-import { TextBlock } from './TextBlock'
-import { SQLBlock } from './SQLBlock'
+import { BigNumberBlock, ButtonBlock, ImageBlock, TableBlock } from './DisplayBlocks'
 import {
-  TextInputBlock,
-  NumberInputBlock,
   CheckboxBlock,
+  DateInputBlock,
+  NumberInputBlock,
   SelectBlock,
   SliderBlock,
-  DateInputBlock,
+  TextInputBlock,
 } from './InputBlocks'
-import { ImageBlock, BigNumberBlock, ButtonBlock, TableBlock } from './DisplayBlocks'
+import { SQLBlock } from './SQLBlock'
+import { TextBlock } from './TextBlock'
 
 interface BlockContainerProps {
   block: Block
@@ -28,8 +29,7 @@ export function BlockContainer({ block, notebookId, index }: BlockContainerProps
   const isActive = activeBlockId === block.id
 
   const handleRun = () => {
-    // TODO: Execute block via kernel
-    console.log('Run block:', block.id)
+    // TODO: Execute block via kernel (block.id)
   }
 
   const handleDelete = () => {
@@ -53,6 +53,8 @@ export function BlockContainer({ block, notebookId, index }: BlockContainerProps
   ]
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: this container is a click-to-select affordance; the block's real actions are the accessible inner buttons.
+    // biome-ignore lint/a11y/useKeyWithClickEvents: selecting a block on click is a pointer convenience, not a primary keyboard action.
     <div
       className={`group relative bg-white dark:bg-slate-900 rounded-lg border ${
         isActive
@@ -62,26 +64,29 @@ export function BlockContainer({ block, notebookId, index }: BlockContainerProps
       onClick={() => setActiveBlock(block.id)}
     >
       {/* Block Header */}
-      <div className="flex items-center gap-1 px-2 py-1 border-b border-slate-100 dark:border-slate-800">
+      <div className='flex items-center gap-1 px-2 py-1 border-b border-slate-100 dark:border-slate-800'>
         <button
-          className="p-1 cursor-grab text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-          title="Drag to reorder"
+          type='button'
+          className='p-1 cursor-grab text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+          title='Drag to reorder'
         >
           <GripVertical size={14} />
         </button>
 
-        <div className="relative">
+        <div className='relative'>
           <button
+            type='button'
             onClick={() => setShowTypeMenu(!showTypeMenu)}
-            className="flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded"
+            className='flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded'
           >
             {block.type.toUpperCase()}
             <ChevronDown size={12} />
           </button>
           {showTypeMenu && (
-            <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded shadow-lg z-10">
+            <div className='absolute top-full left-0 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded shadow-lg z-10'>
               {blockTypes.map(({ type, label }) => (
                 <button
+                  type='button'
                   key={type}
                   onClick={() => {
                     useNotebookStore.getState().updateBlock(notebookId, block.id, {
@@ -89,7 +94,7 @@ export function BlockContainer({ block, notebookId, index }: BlockContainerProps
                     })
                     setShowTypeMenu(false)
                   }}
-                  className="w-full px-3 py-1.5 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
+                  className='w-full px-3 py-1.5 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
                 >
                   {label}
                 </button>
@@ -98,44 +103,44 @@ export function BlockContainer({ block, notebookId, index }: BlockContainerProps
           )}
         </div>
 
-        <span className="text-xs text-slate-400 dark:text-slate-500">[{index + 1}]</span>
+        <span className='text-xs text-slate-400 dark:text-slate-500'>[{index + 1}]</span>
 
-        <div className="flex-1" />
+        <div className='flex-1' />
 
         {block.isExecuting && (
-          <span className="text-xs text-yellow-600 dark:text-yellow-400 animate-pulse">
-            Running...
-          </span>
+          <span className='text-xs text-yellow-600 dark:text-yellow-400 animate-pulse'>Running...</span>
         )}
 
         {(block.type === 'code' || block.type === 'sql') && (
           <button
+            type='button'
             onClick={handleRun}
             disabled={block.isExecuting}
-            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 disabled:opacity-50"
-            title="Run block"
+            className='p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 disabled:opacity-50'
+            title='Run block'
           >
             <Play size={14} />
           </button>
         )}
 
         <button
+          type='button'
           onClick={handleDelete}
-          className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500"
-          title="Delete block"
+          className='p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500'
+          title='Delete block'
         >
           <Trash2 size={14} />
         </button>
       </div>
 
       {/* Block Content */}
-      <div className="p-2">
+      <div className='p-2'>
         <BlockContent block={block} notebookId={notebookId} />
       </div>
 
       {/* Block Output */}
       {block.outputs.length > 0 && (
-        <div className="border-t border-slate-100 dark:border-slate-800 p-2">
+        <div className='border-t border-slate-100 dark:border-slate-800 p-2'>
           <BlockOutput outputs={block.outputs} />
         </div>
       )}
@@ -172,29 +177,27 @@ function BlockContent({ block, notebookId }: { block: Block; notebookId: string 
     case 'table':
       return <TableBlock block={block} notebookId={notebookId} />
     default:
-      return (
-        <div className="text-sm text-slate-500">
-          Block type "{block.type}" not implemented yet
-        </div>
-      )
+      return <div className='text-sm text-slate-500'>Block type "{block.type}" not implemented yet</div>
   }
 }
 
 function BlockOutput({ outputs }: { outputs: Block['outputs'] }) {
   return (
-    <div className="space-y-2">
+    <div className='space-y-2'>
       {outputs.map((output, i) => (
-        <div key={i} className="text-sm">
+        // biome-ignore lint/suspicious/noArrayIndexKey: outputs have no stable id and are replaced wholesale on each execution, so the array index is a stable enough key here.
+        <div key={i} className='text-sm'>
           {output.type === 'error' ? (
-            <pre className="text-red-600 dark:text-red-400 font-mono text-xs whitespace-pre-wrap bg-red-50 dark:bg-red-900/20 p-2 rounded">
+            <pre className='text-red-600 dark:text-red-400 font-mono text-xs whitespace-pre-wrap bg-red-50 dark:bg-red-900/20 p-2 rounded'>
               {output.content}
             </pre>
           ) : output.type === 'image' ? (
-            <img src={output.content} alt="Output" className="max-w-full rounded" />
+            <img src={output.content} alt='Output' className='max-w-full rounded' />
           ) : output.type === 'html' ? (
-            <div dangerouslySetInnerHTML={{ __html: output.content }} />
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: output.content is sanitized with DOMPurify, which strips <script>/event-handler/javascript: payloads (a known notebook XSS vector) while preserving safe markup so rich output like DataFrames still renders.
+            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(output.content) }} />
           ) : (
-            <pre className="font-mono text-xs text-slate-700 dark:text-slate-300 whitespace-pre-wrap bg-slate-50 dark:bg-slate-800 p-2 rounded">
+            <pre className='font-mono text-xs text-slate-700 dark:text-slate-300 whitespace-pre-wrap bg-slate-50 dark:bg-slate-800 p-2 rounded'>
               {output.content}
             </pre>
           )}

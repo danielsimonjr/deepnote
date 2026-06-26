@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Security
+
+- **Sanitize HTML block output to prevent XSS (`@deepnote/web`).** `BlockContainer` rendered `output.content` for `html`-type outputs via `dangerouslySetInnerHTML` with no sanitization. A notebook opened from an untrusted source can carry stored HTML outputs containing `<script>` / `onerror` / `javascript:` payloads (a well-known notebook XSS vector), which would execute on render. Output is now passed through `DOMPurify.sanitize()`, which strips active content while preserving safe markup so rich output (DataFrames, etc.) still renders. Added `dompurify` as a direct dependency of `@deepnote/web`.
+
 ### Fixed
 
 - **@deepnote/web typecheck errors.** `pnpm --filter @deepnote/web typecheck` was failing: an invalid `minHeight` prop was passed to the Monaco `<Editor>` in `CodeBlock.tsx` and `SQLBlock.tsx` (TS2322), and `SQLBlock.tsx` declared an unused `databaseName` (TS6133). Removed the `minHeight` props (the wrapping `div` already enforces the minimum via `min-h-*`) and the dead variable. Typecheck now passes.
