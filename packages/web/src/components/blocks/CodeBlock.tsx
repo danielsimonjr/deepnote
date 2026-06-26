@@ -1,5 +1,5 @@
 import Editor from '@monaco-editor/react'
-import { Block, useNotebookStore } from '../../stores/notebook-store'
+import { type Block, useNotebookStore } from '../../stores/notebook-store'
 import { useUIStore } from '../../stores/ui-store'
 
 interface CodeBlockProps {
@@ -8,8 +8,8 @@ interface CodeBlockProps {
 }
 
 export function CodeBlock({ block, notebookId }: CodeBlockProps) {
-  const updateBlock = useNotebookStore((state) => state.updateBlock)
-  const theme = useUIStore((state) => state.theme)
+  const updateBlock = useNotebookStore(state => state.updateBlock)
+  const theme = useUIStore(state => state.theme)
 
   const handleChange = (value: string | undefined) => {
     if (value !== undefined) {
@@ -18,11 +18,10 @@ export function CodeBlock({ block, notebookId }: CodeBlockProps) {
   }
 
   return (
-    <div className="min-h-[100px] border border-slate-200 dark:border-slate-700 rounded overflow-hidden">
+    <div className='min-h-[100px] border border-slate-200 dark:border-slate-700 rounded overflow-hidden'>
       <Editor
-        height="auto"
-        minHeight="100px"
-        language="python"
+        height='auto'
+        language='python'
         value={block.content}
         onChange={handleChange}
         theme={theme === 'dark' ? 'vs-dark' : 'light'}

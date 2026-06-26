@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- **@deepnote/web typecheck errors.** `pnpm --filter @deepnote/web typecheck` was failing: an invalid `minHeight` prop was passed to the Monaco `<Editor>` in `CodeBlock.tsx` and `SQLBlock.tsx` (TS2322), and `SQLBlock.tsx` declared an unused `databaseName` (TS6133). Removed the `minHeight` props (the wrapping `div` already enforces the minimum via `min-h-*`) and the dead variable. Typecheck now passes.
+
 ### Added
 
 #### New Packages
