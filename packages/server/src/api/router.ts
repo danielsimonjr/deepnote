@@ -1,8 +1,8 @@
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { Router } from 'express'
-import { KernelManager } from '../kernel/kernel-manager.js'
-import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync } from 'fs'
-import { join } from 'path'
 import { parse, stringify } from 'yaml'
+import type { KernelManager } from '../kernel/kernel-manager.js'
 
 export function createApiRouter(kernelManager: KernelManager): Router {
   const router = Router()
@@ -73,7 +73,7 @@ export function createApiRouter(kernelManager: KernelManager): Router {
     }
   })
 
-  router.get('/files/*', (req, res) => {
+  router.get<{ 0: string }>('/files/*', (req, res) => {
     try {
       const filePath = join(workspacePath, req.params[0])
       if (!existsSync(filePath)) {
@@ -92,7 +92,7 @@ export function createApiRouter(kernelManager: KernelManager): Router {
     }
   })
 
-  router.put('/files/*', (req, res) => {
+  router.put<{ 0: string }>('/files/*', (req, res) => {
     try {
       const filePath = join(workspacePath, req.params[0])
       const { content } = req.body
@@ -115,13 +115,13 @@ export function createApiRouter(kernelManager: KernelManager): Router {
     }
   })
 
-  router.delete('/files/*', (req, res) => {
+  router.delete<{ 0: string }>('/files/*', (req, res) => {
     try {
       const filePath = join(workspacePath, req.params[0])
       if (!existsSync(filePath)) {
         return res.status(404).json({ error: 'File not found' })
       }
-      const { unlinkSync } = require('fs')
+      const { unlinkSync } = require('node:fs')
       unlinkSync(filePath)
       res.json({ success: true })
     } catch (error) {
