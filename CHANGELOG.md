@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 
 - `brace-expansion` 5.0.6 -> 5.0.9 (high, needs 5.0.7)
 - `body-parser` 1.20.5 -> 1.20.6 (low)
+- `dompurify` 3.4.11 -> 3.4.13 (low, needs 3.4.12) — a second tree position
+  that Dependabot's own PR #15 did not reach
 
 Both moved with a plain in-range `pnpm update -r`; no manifest change.
 
