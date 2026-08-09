@@ -1,5 +1,36 @@
-branch_name="$(git symbolic-ref --short HEAD)"
-if [ "$branch_name" = "main" ]; then
-  echo "Pushing directly to main is not allowed."
-  exit 1
-fi
+# Block pushes that would update `main` directly.
+#
+# Decide from WHAT IS BEING PUSHED, not from what happens to be checked out.
+# git feeds pre-push one line per ref on stdin:
+#
+#     <local_ref> <local_oid> <remote_ref> <remote_oid>
+#
+# The previous version tested `git symbolic-ref --short HEAD` instead, which was
+# wrong in both directions:
+#
+#   * FALSE POSITIVE — standing on main, `git push origin --delete some-branch`
+#     was rejected as "pushing directly to main", even though main is untouched.
+#     That is a deletion of an unrelated ref.
+#   * FALSE NEGATIVE — standing on a feature branch, `git push origin HEAD:main`
+#     sailed through, which is exactly the thing this hook exists to prevent.
+#
+# A deletion is signalled by an all-zero local_oid; deleting main is refused too.
+
+while read -r local_ref local_oid remote_ref remote_oid; do
+  [ -z "$remote_ref" ] && continue
+
+  case "$remote_ref" in
+    refs/heads/main)
+      # An all-zero oid means "delete this ref" — length-agnostic, so this holds
+      # for SHA-1 (40 chars) and SHA-256 (64) without hard-coding either.
+      case "$local_oid" in
+        *[!0]*) echo "Pushing directly to main is not allowed." ;;
+        *)      echo "Refusing to DELETE main." ;;
+      esac
+      echo "  ref: $remote_ref"
+      exit 1
+      ;;
+  esac
+done
+
+exit 0
