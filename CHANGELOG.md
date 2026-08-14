@@ -32,6 +32,16 @@ gate, so the causes were fixed first:
   0.22.14 (`diff`), and `postcss` in `@deepnote/web` (`nanoid`).
 - **`pnpm spell-check` clean** — 33 findings in 13 files, mostly real Python builtins
   in `python-utils.ts` plus test fixtures, added to `cspell.json`.
+- **`pnpm lintAndFormat` clean** — 44 biome errors, none of them cosmetic. 17 `<button>`
+  elements had no `type`, so they defaulted to `submit`; 6 labels in `InputBlocks` named
+  no control and are now paired by `htmlFor`/`id`; two `autoFocus` attributes became a
+  ref focused on _entering_ edit mode (autoFocus also fires on first paint and pulls a
+  screen reader out of the document); and the markdown preview was click-only, so it
+  gained `role`/`tabIndex`/Enter-Space. Three rules are suppressed with their reasoning
+  inline — a `<button>` may not contain the links rendered markdown produces, the
+  dataframe table is a never-reordered projection with no natural row id, and completing
+  `useKernel`'s dependency array would reopen the WebSocket every render.
+  Plus prettier on 4 unformatted markdown files.
 - **Codecov upload no longer fails the Test job for a missing credential.** On a push
   to `main` the fork-PR guard does not apply, so the step ran with no `CODECOV_TOKEN`
   and `fail_ci_if_error: true` failed the job. The token is checked in a dedicated

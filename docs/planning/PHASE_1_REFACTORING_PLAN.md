@@ -12,16 +12,16 @@ This plan breaks down the Phase 1 refactoring into **8 sprints** with **4-5 atom
 
 ### Priority Matrix
 
-| Sprint | Priority | Risk | Effort | Impact |
-|--------|----------|------|--------|--------|
-| Sprint 1: Date Range Consolidation | 🔴 High | Low | Medium | High |
-| Sprint 2: Block Dispatcher Refactor | 🔴 High | Medium | Medium | High |
-| Sprint 3: Python Template Extraction | 🟡 Medium | Medium | High | Medium |
-| Sprint 4: Type/Schema Unification | 🟡 Medium | Low | Medium | High |
-| Sprint 5: String Escaping Hardening | 🔴 High | Low | Low | High |
-| Sprint 6: Integration Test Suite | 🟡 Medium | Low | Medium | Medium |
-| Sprint 7: Code Duplication Cleanup | 🟢 Low | Low | Low | Medium |
-| Sprint 8: Documentation & Exports | 🟢 Low | Low | Low | Medium |
+| Sprint                               | Priority  | Risk   | Effort | Impact |
+| ------------------------------------ | --------- | ------ | ------ | ------ |
+| Sprint 1: Date Range Consolidation   | 🔴 High   | Low    | Medium | High   |
+| Sprint 2: Block Dispatcher Refactor  | 🔴 High   | Medium | Medium | High   |
+| Sprint 3: Python Template Extraction | 🟡 Medium | Medium | High   | Medium |
+| Sprint 4: Type/Schema Unification    | 🟡 Medium | Low    | Medium | High   |
+| Sprint 5: String Escaping Hardening  | 🔴 High   | Low    | Low    | High   |
+| Sprint 6: Integration Test Suite     | 🟡 Medium | Low    | Medium | Medium |
+| Sprint 7: Code Duplication Cleanup   | 🟢 Low    | Low    | Low    | Medium |
+| Sprint 8: Documentation & Exports    | 🟢 Low    | Low    | Low    | Medium |
 
 ---
 
@@ -30,6 +30,7 @@ This plan breaks down the Phase 1 refactoring into **8 sprints** with **4-5 atom
 **Objective:** Reduce 6 near-identical date range functions to 1 parameterized function.
 
 **Files Affected:**
+
 - `packages/blocks/src/python-snippets.ts`
 - `packages/blocks/src/blocks/input-blocks.ts`
 
@@ -40,6 +41,7 @@ This plan breaks down the Phase 1 refactoring into **8 sprints** with **4-5 atom
 **Description:** Create a single `dateRangePastPeriod` function that accepts a period type and generates the appropriate Python code.
 
 **Current Code (lines 96-146):**
+
 ```typescript
 dateRangePast7days: (name: string) => { /* ... timedelta(days=7) */ },
 dateRangePast14days: (name: string) => { /* ... timedelta(days=14) */ },
@@ -50,20 +52,21 @@ dateRangePastYear: (name: string) => { /* ... relativedelta(years=1) */ },
 ```
 
 **Target Implementation:**
+
 ```typescript
 type DateRangePeriod =
-  | { type: 'days'; count: number }
-  | { type: 'months'; count: number }
-  | { type: 'years'; count: number }
+  | { type: "days"; count: number }
+  | { type: "months"; count: number }
+  | { type: "years"; count: number };
 
 dateRangePastPeriod: (name: string, period: DateRangePeriod) => {
-  const sanitizedName = sanitizePythonVariableName(name)
+  const sanitizedName = sanitizePythonVariableName(name);
 
-  if (period.type === 'days') {
+  if (period.type === "days") {
     return dedent`
       from datetime import datetime, timedelta
       ${sanitizedName} = [datetime.now().date() - timedelta(days=${period.count}), datetime.now().date()]
-    `
+    `;
   }
 
   // months and years use relativedelta
@@ -71,11 +74,12 @@ dateRangePastPeriod: (name: string, period: DateRangePeriod) => {
     from datetime import datetime
     from dateutil.relativedelta import relativedelta
     ${sanitizedName} = [datetime.now().date() - relativedelta(${period.type}=${period.count}), datetime.now().date()]
-  `
-}
+  `;
+};
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Single function handles all period types
 - [ ] Uses discriminated union for type safety
 - [ ] Maintains backward compatibility via wrapper functions (temporary)
@@ -90,27 +94,30 @@ dateRangePastPeriod: (name: string, period: DateRangePeriod) => {
 **Description:** Update the `DATE_RANGE_INPUT_RELATIVE_RANGES` constant to use the new unified function.
 
 **Current Code (lines 22-29):**
+
 ```typescript
 export const DATE_RANGE_INPUT_RELATIVE_RANGES = [
-  { value: 'past7days', pythonCode: pythonCode.dateRangePast7days },
-  { value: 'past14days', pythonCode: pythonCode.dateRangePast14days },
+  { value: "past7days", pythonCode: pythonCode.dateRangePast7days },
+  { value: "past14days", pythonCode: pythonCode.dateRangePast14days },
   // ... etc
-] as const
+] as const;
 ```
 
 **Target Implementation:**
+
 ```typescript
 export const DATE_RANGE_INPUT_RELATIVE_RANGES = [
-  { value: 'past7days', period: { type: 'days', count: 7 } },
-  { value: 'past14days', period: { type: 'days', count: 14 } },
-  { value: 'pastMonth', period: { type: 'months', count: 1 } },
-  { value: 'past3months', period: { type: 'months', count: 3 } },
-  { value: 'past6months', period: { type: 'months', count: 6 } },
-  { value: 'pastYear', period: { type: 'years', count: 1 } },
-] as const satisfies ReadonlyArray<{ value: string; period: DateRangePeriod }>
+  { value: "past7days", period: { type: "days", count: 7 } },
+  { value: "past14days", period: { type: "days", count: 14 } },
+  { value: "pastMonth", period: { type: "months", count: 1 } },
+  { value: "past3months", period: { type: "months", count: 3 } },
+  { value: "past6months", period: { type: "months", count: 6 } },
+  { value: "pastYear", period: { type: "years", count: 1 } },
+] as const satisfies ReadonlyArray<{ value: string; period: DateRangePeriod }>;
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Mapping uses period objects instead of function references
 - [ ] Type is properly constrained with `satisfies`
 - [ ] No runtime behavior changes
@@ -124,6 +131,7 @@ export const DATE_RANGE_INPUT_RELATIVE_RANGES = [
 **Description:** Update the date range block code generation to use the new unified function.
 
 **Current Code (lines 326-334):**
+
 ```typescript
 const range = DATE_RANGE_INPUT_RELATIVE_RANGES.find(range => range.value === block.metadata.deepnote_variable_value)
 if (!range) {
@@ -134,6 +142,7 @@ return dedent`
 ```
 
 **Target Implementation:**
+
 ```typescript
 const range = DATE_RANGE_INPUT_RELATIVE_RANGES.find(r => r.value === block.metadata.deepnote_variable_value)
 if (!range) {
@@ -143,6 +152,7 @@ return pythonCode.dateRangePastPeriod(sanitizedPythonVariableName, range.period)
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Uses new unified function
 - [ ] Error handling preserved
 - [ ] All date range tests pass
@@ -156,6 +166,7 @@ return pythonCode.dateRangePastPeriod(sanitizedPythonVariableName, range.period)
 **Description:** Remove the 6 individual date range functions after migration is complete.
 
 **Functions to Remove:**
+
 - `dateRangePast7days`
 - `dateRangePast14days`
 - `dateRangePastMonth`
@@ -164,6 +175,7 @@ return pythonCode.dateRangePastPeriod(sanitizedPythonVariableName, range.period)
 - `dateRangePastYear`
 
 **Acceptance Criteria:**
+
 - [ ] All 6 functions removed
 - [ ] No references to removed functions remain
 - [ ] `pnpm typecheck` passes
@@ -178,32 +190,46 @@ return pythonCode.dateRangePastPeriod(sanitizedPythonVariableName, range.period)
 **Description:** Create comprehensive tests for the new unified date range function.
 
 **Test Cases:**
+
 ```typescript
-describe('dateRangePastPeriod', () => {
-  it('generates correct Python for days period', () => {
-    const result = pythonCode.dateRangePastPeriod('my_range', { type: 'days', count: 7 })
-    expect(result).toContain('timedelta(days=7)')
-    expect(result).toContain('my_range = [')
-  })
+describe("dateRangePastPeriod", () => {
+  it("generates correct Python for days period", () => {
+    const result = pythonCode.dateRangePastPeriod("my_range", {
+      type: "days",
+      count: 7,
+    });
+    expect(result).toContain("timedelta(days=7)");
+    expect(result).toContain("my_range = [");
+  });
 
-  it('generates correct Python for months period', () => {
-    const result = pythonCode.dateRangePastPeriod('my_range', { type: 'months', count: 3 })
-    expect(result).toContain('relativedelta(months=3)')
-  })
+  it("generates correct Python for months period", () => {
+    const result = pythonCode.dateRangePastPeriod("my_range", {
+      type: "months",
+      count: 3,
+    });
+    expect(result).toContain("relativedelta(months=3)");
+  });
 
-  it('generates correct Python for years period', () => {
-    const result = pythonCode.dateRangePastPeriod('my_range', { type: 'years', count: 1 })
-    expect(result).toContain('relativedelta(years=1)')
-  })
+  it("generates correct Python for years period", () => {
+    const result = pythonCode.dateRangePastPeriod("my_range", {
+      type: "years",
+      count: 1,
+    });
+    expect(result).toContain("relativedelta(years=1)");
+  });
 
-  it('sanitizes variable names', () => {
-    const result = pythonCode.dateRangePastPeriod('123invalid', { type: 'days', count: 7 })
-    expect(result).toContain('input_1 = [')
-  })
-})
+  it("sanitizes variable names", () => {
+    const result = pythonCode.dateRangePastPeriod("123invalid", {
+      type: "days",
+      count: 7,
+    });
+    expect(result).toContain("input_1 = [");
+  });
+});
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Tests cover all period types (days, months, years)
 - [ ] Tests verify variable name sanitization
 - [ ] Tests verify correct Python syntax generation
@@ -216,6 +242,7 @@ describe('dateRangePastPeriod', () => {
 **Objective:** Replace the 15-item if-else chain with a type-safe dispatch table.
 
 **Files Affected:**
+
 - `packages/blocks/src/python-code.ts`
 - `packages/blocks/src/blocks/index.ts`
 
@@ -226,25 +253,30 @@ describe('dateRangePastPeriod', () => {
 **Description:** Create a type-safe registry type for block handlers.
 
 **Target Implementation:**
+
 ```typescript
-import type { DeepnoteBlock } from './deserialize-file/deepnote-file-schema'
-import type { ButtonExecutionContext } from './blocks/button-blocks'
+import type { DeepnoteBlock } from "./deserialize-file/deepnote-file-schema";
+import type { ButtonExecutionContext } from "./blocks/button-blocks";
 
 type BlockHandler<T extends DeepnoteBlock = DeepnoteBlock> = (
   block: T,
-  executionContext?: ButtonExecutionContext
-) => string
+  executionContext?: ButtonExecutionContext,
+) => string;
 
-type BlockType = DeepnoteBlock['type']
+type BlockType = DeepnoteBlock["type"];
 
 interface BlockHandlerRegistry {
-  handlers: Map<BlockType, BlockHandler>
-  register<T extends DeepnoteBlock>(type: T['type'], handler: BlockHandler<T>): void
-  get(type: BlockType): BlockHandler | undefined
+  handlers: Map<BlockType, BlockHandler>;
+  register<T extends DeepnoteBlock>(
+    type: T["type"],
+    handler: BlockHandler<T>,
+  ): void;
+  get(type: BlockType): BlockHandler | undefined;
 }
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Type properly constrains handlers to their block types
 - [ ] Registry supports type-safe registration
 - [ ] No `any` types used
@@ -258,36 +290,56 @@ interface BlockHandlerRegistry {
 **Description:** Implement the block handler registry with all existing handlers.
 
 **Target Implementation:**
+
 ```typescript
 const blockHandlerRegistry: BlockHandlerRegistry = {
   handlers: new Map(),
 
   register(type, handler) {
-    this.handlers.set(type, handler as BlockHandler)
+    this.handlers.set(type, handler as BlockHandler);
   },
 
   get(type) {
-    return this.handlers.get(type)
-  }
-}
+    return this.handlers.get(type);
+  },
+};
 
 // Register all handlers
-blockHandlerRegistry.register('code', createPythonCodeForCodeBlock)
-blockHandlerRegistry.register('sql', createPythonCodeForSqlBlock)
-blockHandlerRegistry.register('input-text', createPythonCodeForInputTextBlock)
-blockHandlerRegistry.register('input-textarea', createPythonCodeForInputTextareaBlock)
-blockHandlerRegistry.register('input-checkbox', createPythonCodeForInputCheckboxBlock)
-blockHandlerRegistry.register('input-select', createPythonCodeForInputSelectBlock)
-blockHandlerRegistry.register('input-slider', createPythonCodeForInputSliderBlock)
-blockHandlerRegistry.register('input-file', createPythonCodeForInputFileBlock)
-blockHandlerRegistry.register('input-date', createPythonCodeForInputDateBlock)
-blockHandlerRegistry.register('input-date-range', createPythonCodeForInputDateRangeBlock)
-blockHandlerRegistry.register('visualization', createPythonCodeForVisualizationBlock)
-blockHandlerRegistry.register('button', createPythonCodeForButtonBlock)
-blockHandlerRegistry.register('big-number', createPythonCodeForBigNumberBlock)
+blockHandlerRegistry.register("code", createPythonCodeForCodeBlock);
+blockHandlerRegistry.register("sql", createPythonCodeForSqlBlock);
+blockHandlerRegistry.register("input-text", createPythonCodeForInputTextBlock);
+blockHandlerRegistry.register(
+  "input-textarea",
+  createPythonCodeForInputTextareaBlock,
+);
+blockHandlerRegistry.register(
+  "input-checkbox",
+  createPythonCodeForInputCheckboxBlock,
+);
+blockHandlerRegistry.register(
+  "input-select",
+  createPythonCodeForInputSelectBlock,
+);
+blockHandlerRegistry.register(
+  "input-slider",
+  createPythonCodeForInputSliderBlock,
+);
+blockHandlerRegistry.register("input-file", createPythonCodeForInputFileBlock);
+blockHandlerRegistry.register("input-date", createPythonCodeForInputDateBlock);
+blockHandlerRegistry.register(
+  "input-date-range",
+  createPythonCodeForInputDateRangeBlock,
+);
+blockHandlerRegistry.register(
+  "visualization",
+  createPythonCodeForVisualizationBlock,
+);
+blockHandlerRegistry.register("button", createPythonCodeForButtonBlock);
+blockHandlerRegistry.register("big-number", createPythonCodeForBigNumberBlock);
 ```
 
 **Acceptance Criteria:**
+
 - [ ] All 13 block types registered
 - [ ] Registry is properly typed
 - [ ] No runtime behavior changes
@@ -301,6 +353,7 @@ blockHandlerRegistry.register('big-number', createPythonCodeForBigNumberBlock)
 **Description:** Replace the if-else chain with registry lookup.
 
 **Current Code (lines 70-124):**
+
 ```typescript
 export function createPythonCode(block: DeepnoteBlock, executionContext?: ButtonExecutionContext): string {
   if (isCodeBlock(block)) {
@@ -315,19 +368,26 @@ export function createPythonCode(block: DeepnoteBlock, executionContext?: Button
 ```
 
 **Target Implementation:**
+
 ```typescript
-export function createPythonCode(block: DeepnoteBlock, executionContext?: ButtonExecutionContext): string {
-  const handler = blockHandlerRegistry.get(block.type)
+export function createPythonCode(
+  block: DeepnoteBlock,
+  executionContext?: ButtonExecutionContext,
+): string {
+  const handler = blockHandlerRegistry.get(block.type);
 
   if (!handler) {
-    throw new UnsupportedBlockTypeError(`Creating python code from block type ${block.type} is not supported yet.`)
+    throw new UnsupportedBlockTypeError(
+      `Creating python code from block type ${block.type} is not supported yet.`,
+    );
   }
 
-  return handler(block, executionContext)
+  return handler(block, executionContext);
 }
 ```
 
 **Acceptance Criteria:**
+
 - [ ] If-else chain completely removed
 - [ ] Same error message for unsupported types
 - [ ] All existing tests pass
@@ -342,6 +402,7 @@ export function createPythonCode(block: DeepnoteBlock, executionContext?: Button
 **Description:** Remove the type guard imports that are no longer needed after refactoring.
 
 **Imports to Evaluate:**
+
 ```typescript
 // These may no longer be needed in python-code.ts:
 import { isCodeBlock } from './blocks/code-blocks'
@@ -353,6 +414,7 @@ import { isBigNumberBlock } from './blocks/big-number-blocks'
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Unused imports removed
 - [ ] `pnpm biome:check` passes (no unused imports error)
 - [ ] Type guards still exported from their original modules for external use
@@ -366,6 +428,7 @@ import { isBigNumberBlock } from './blocks/big-number-blocks'
 **Description:** Add tests for the registry pattern and ensure dispatch works correctly.
 
 **Test Cases:**
+
 ```typescript
 describe('createPythonCode dispatch', () => {
   it('dispatches code blocks correctly', () => {
@@ -387,6 +450,7 @@ describe('createPythonCode dispatch', () => {
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Tests verify correct dispatch for each block type
 - [ ] Tests verify error handling for unknown types
 - [ ] Tests verify execution context passing
@@ -398,6 +462,7 @@ describe('createPythonCode dispatch', () => {
 **Objective:** Move embedded Python code from TypeScript strings to maintainable template files.
 
 **Files Affected:**
+
 - `packages/blocks/src/python-snippets.ts`
 - `packages/blocks/templates/` (new directory)
 
@@ -406,6 +471,7 @@ describe('createPythonCode dispatch', () => {
 **Description:** Set up the directory structure for Python templates.
 
 **Structure:**
+
 ```
 packages/blocks/
 ├── src/
@@ -417,6 +483,7 @@ packages/blocks/
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Directory created
 - [ ] `.py.template` extension chosen for syntax highlighting
 - [ ] Templates directory included in package build
@@ -430,6 +497,7 @@ packages/blocks/
 **Description:** Extract the `executeBigNumber` Python code to a template file.
 
 **Current Code (python-snippets.ts lines 11-87):**
+
 ```typescript
 executeBigNumber: (...) => {
   return `
@@ -442,6 +510,7 @@ def __deepnote_big_number__():
 ```
 
 **Template Format:**
+
 ```python
 # big-number.py.template
 # Variables: {{title_template}}, {{value_variable}}, {{comparison_title_template}}, {{comparison_variable}}
@@ -482,6 +551,7 @@ __deepnote_big_number__()
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Template extracted with clear variable placeholders
 - [ ] Comments document expected variables
 - [ ] Original functionality preserved
@@ -495,33 +565,43 @@ __deepnote_big_number__()
 **Description:** Create a utility to load and interpolate Python templates.
 
 **Implementation:**
-```typescript
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 
-const templateCache = new Map<string, string>()
+```typescript
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+const templateCache = new Map<string, string>();
 
 export function loadTemplate(name: string): string {
   if (templateCache.has(name)) {
-    return templateCache.get(name)!
+    return templateCache.get(name)!;
   }
 
-  const templatePath = join(__dirname, '..', 'templates', `${name}.py.template`)
-  const content = readFileSync(templatePath, 'utf-8')
-  templateCache.set(name, content)
-  return content
+  const templatePath = join(
+    __dirname,
+    "..",
+    "templates",
+    `${name}.py.template`,
+  );
+  const content = readFileSync(templatePath, "utf-8");
+  templateCache.set(name, content);
+  return content;
 }
 
-export function interpolateTemplate(template: string, variables: Record<string, string>): string {
-  let result = template
+export function interpolateTemplate(
+  template: string,
+  variables: Record<string, string>,
+): string {
+  let result = template;
   for (const [key, value] of Object.entries(variables)) {
-    result = result.replaceAll(`{{${key}}}`, value)
+    result = result.replaceAll(`{{${key}}}`, value);
   }
-  return result
+  return result;
 }
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Templates loaded from file system
 - [ ] Caching prevents repeated file reads
 - [ ] Simple interpolation with `{{variable}}` syntax
@@ -536,26 +616,35 @@ export function interpolateTemplate(template: string, variables: Record<string, 
 **Description:** Refactor `executeBigNumber` to use the template loader.
 
 **Target Implementation:**
+
 ```typescript
-import { interpolateTemplate, loadTemplate } from './template-loader'
+import { interpolateTemplate, loadTemplate } from "./template-loader";
 
-executeBigNumber: (titleTemplate, valueVariableName, comparisonTitleTemplate = '', comparisonVariableName = '') => {
-  const sanitizedValueVariable = sanitizePythonVariableName(valueVariableName)
-  const hasComparison = comparisonTitleTemplate || comparisonVariableName
+executeBigNumber: (
+  titleTemplate,
+  valueVariableName,
+  comparisonTitleTemplate = "",
+  comparisonVariableName = "",
+) => {
+  const sanitizedValueVariable = sanitizePythonVariableName(valueVariableName);
+  const hasComparison = comparisonTitleTemplate || comparisonVariableName;
 
-  const templateName = hasComparison ? 'big-number-comparison' : 'big-number'
-  const template = loadTemplate(templateName)
+  const templateName = hasComparison ? "big-number-comparison" : "big-number";
+  const template = loadTemplate(templateName);
 
   return interpolateTemplate(template, {
     title_template: escapePythonString(titleTemplate),
     value: sanitizedValueVariable ? `f"{${sanitizedValueVariable}}"` : '""',
     comparison_title_template: escapePythonString(comparisonTitleTemplate),
-    comparison_value: comparisonVariableName ? `f"{${sanitizePythonVariableName(comparisonVariableName)}}"` : '""',
-  })
-}
+    comparison_value: comparisonVariableName
+      ? `f"{${sanitizePythonVariableName(comparisonVariableName)}}"`
+      : '""',
+  });
+};
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Uses template loader
 - [ ] Same output as before
 - [ ] All existing tests pass
@@ -569,45 +658,49 @@ executeBigNumber: (titleTemplate, valueVariableName, comparisonTitleTemplate = '
 **Description:** Create tests for the template loading system.
 
 **Test Cases:**
+
 ```typescript
-describe('template-loader', () => {
-  describe('loadTemplate', () => {
-    it('loads existing templates', () => {
-      const template = loadTemplate('big-number')
-      expect(template).toContain('def __deepnote_big_number__')
-    })
+describe("template-loader", () => {
+  describe("loadTemplate", () => {
+    it("loads existing templates", () => {
+      const template = loadTemplate("big-number");
+      expect(template).toContain("def __deepnote_big_number__");
+    });
 
-    it('caches templates on subsequent loads', () => {
-      const first = loadTemplate('big-number')
-      const second = loadTemplate('big-number')
-      expect(first).toBe(second) // Same reference
-    })
+    it("caches templates on subsequent loads", () => {
+      const first = loadTemplate("big-number");
+      const second = loadTemplate("big-number");
+      expect(first).toBe(second); // Same reference
+    });
 
-    it('throws for non-existent templates', () => {
-      expect(() => loadTemplate('nonexistent')).toThrow()
-    })
-  })
+    it("throws for non-existent templates", () => {
+      expect(() => loadTemplate("nonexistent")).toThrow();
+    });
+  });
 
-  describe('interpolateTemplate', () => {
-    it('replaces single variable', () => {
-      const result = interpolateTemplate('Hello {{name}}', { name: 'World' })
-      expect(result).toBe('Hello World')
-    })
+  describe("interpolateTemplate", () => {
+    it("replaces single variable", () => {
+      const result = interpolateTemplate("Hello {{name}}", { name: "World" });
+      expect(result).toBe("Hello World");
+    });
 
-    it('replaces multiple occurrences', () => {
-      const result = interpolateTemplate('{{x}} + {{x}}', { x: '1' })
-      expect(result).toBe('1 + 1')
-    })
+    it("replaces multiple occurrences", () => {
+      const result = interpolateTemplate("{{x}} + {{x}}", { x: "1" });
+      expect(result).toBe("1 + 1");
+    });
 
-    it('leaves unknown variables unchanged', () => {
-      const result = interpolateTemplate('{{known}} {{unknown}}', { known: 'yes' })
-      expect(result).toBe('yes {{unknown}}')
-    })
-  })
-})
+    it("leaves unknown variables unchanged", () => {
+      const result = interpolateTemplate("{{known}} {{unknown}}", {
+        known: "yes",
+      });
+      expect(result).toBe("yes {{unknown}}");
+    });
+  });
+});
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Template loading tests pass
 - [ ] Interpolation tests cover edge cases
 - [ ] Error handling tested
@@ -619,6 +712,7 @@ describe('template-loader', () => {
 **Objective:** Eliminate duplicate TypeScript interfaces and Zod schemas by generating types from schemas.
 
 **Files Affected:**
+
 - `packages/blocks/src/blocks/input-blocks.ts`
 - `packages/blocks/src/deserialize-file/block-metadata-schemas.ts`
 
@@ -635,6 +729,7 @@ describe('template-loader', () => {
 | ... | ... | ... |
 
 **Acceptance Criteria:**
+
 - [ ] Complete inventory documented
 - [ ] Differences between interfaces and schemas identified
 - [ ] Migration path determined for each pair
@@ -648,20 +743,25 @@ describe('template-loader', () => {
 **Description:** Replace TypeScript interfaces with types inferred from Zod schemas.
 
 **Current Pattern:**
+
 ```typescript
 export interface InputTextBlockMetadata extends InputBlockMetadata {
-  deepnote_variable_value: string
+  deepnote_variable_value: string;
 }
 ```
 
 **Target Pattern:**
-```typescript
-import { inputTextBlockMetadataSchema } from '../deserialize-file/block-metadata-schemas'
 
-export type InputTextBlockMetadata = z.infer<typeof inputTextBlockMetadataSchema>
+```typescript
+import { inputTextBlockMetadataSchema } from "../deserialize-file/block-metadata-schemas";
+
+export type InputTextBlockMetadata = z.infer<
+  typeof inputTextBlockMetadataSchema
+>;
 ```
 
 **Acceptance Criteria:**
+
 - [ ] All 8 input block metadata types use `z.infer<>`
 - [ ] No duplicate type definitions
 - [ ] All existing tests pass
@@ -676,6 +776,7 @@ export type InputTextBlockMetadata = z.infer<typeof inputTextBlockMetadataSchema
 **Description:** Verify all Zod schemas have complete field definitions matching the original interfaces.
 
 **Verification Checklist:**
+
 ```typescript
 // Ensure these schemas have all fields from their interface counterparts:
 - inputTextBlockMetadataSchema
@@ -689,6 +790,7 @@ export type InputTextBlockMetadata = z.infer<typeof inputTextBlockMetadataSchema
 ```
 
 **Acceptance Criteria:**
+
 - [ ] All optional fields marked with `.optional()`
 - [ ] Default values specified where appropriate
 - [ ] No schema is missing fields from original interface
@@ -702,24 +804,27 @@ export type InputTextBlockMetadata = z.infer<typeof inputTextBlockMetadataSchema
 **Description:** Update the block type definitions to use the new schema-derived metadata types.
 
 **Current Pattern:**
+
 ```typescript
 export interface InputTextBlock extends DeepnoteBlock {
-  content: string
-  metadata: InputTextBlockMetadata
-  type: 'input-text'
+  content: string;
+  metadata: InputTextBlockMetadata;
+  type: "input-text";
 }
 ```
 
 **Target Pattern:**
+
 ```typescript
 export type InputTextBlock = DeepnoteBlock & {
-  content: string
-  metadata: z.infer<typeof inputTextBlockMetadataSchema>
-  type: 'input-text'
-}
+  content: string;
+  metadata: z.infer<typeof inputTextBlockMetadataSchema>;
+  type: "input-text";
+};
 ```
 
 **Acceptance Criteria:**
+
 - [ ] All 8 input block types updated
 - [ ] Type compatibility maintained
 - [ ] All tests pass
@@ -733,6 +838,7 @@ export type InputTextBlock = DeepnoteBlock & {
 **Description:** Export the Zod schemas for external validation use.
 
 **Additions:**
+
 ```typescript
 // Block metadata schemas
 export {
@@ -743,10 +849,11 @@ export {
   inputFileBlockMetadataSchema,
   inputDateBlockMetadataSchema,
   inputDateRangeBlockMetadataSchema,
-} from './deserialize-file/block-metadata-schemas'
+} from "./deserialize-file/block-metadata-schemas";
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Schemas exported from package
 - [ ] JSDoc comments added for public API
 - [ ] No breaking changes to existing exports
@@ -758,6 +865,7 @@ export {
 **Objective:** Harden the Python string escaping with fuzz testing and edge case coverage.
 
 **Files Affected:**
+
 - `packages/blocks/src/blocks/python-utils.ts`
 - `packages/blocks/src/blocks/python-utils.test.ts`
 
@@ -768,27 +876,33 @@ export {
 **Description:** Add handling for carriage returns which are currently not escaped.
 
 **Current Code:**
+
 ```typescript
 export function escapePythonString(value: string): string {
-  const escaped = value.replaceAll('\\', '\\\\').replaceAll("'", "\\'").replaceAll('\n', '\\n')
-  return `'${escaped}'`
+  const escaped = value
+    .replaceAll("\\", "\\\\")
+    .replaceAll("'", "\\'")
+    .replaceAll("\n", "\\n");
+  return `'${escaped}'`;
 }
 ```
 
 **Target Code:**
+
 ```typescript
 export function escapePythonString(value: string): string {
   const escaped = value
-    .replaceAll('\\', '\\\\')
+    .replaceAll("\\", "\\\\")
     .replaceAll("'", "\\'")
-    .replaceAll('\n', '\\n')
-    .replaceAll('\r', '\\r')
-    .replaceAll('\t', '\\t')
-  return `'${escaped}'`
+    .replaceAll("\n", "\\n")
+    .replaceAll("\r", "\\r")
+    .replaceAll("\t", "\\t");
+  return `'${escaped}'`;
 }
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Carriage returns escaped as `\r`
 - [ ] Tabs escaped as `\t`
 - [ ] Existing tests still pass
@@ -803,35 +917,37 @@ export function escapePythonString(value: string): string {
 **Description:** Add tests for Unicode edge cases that could cause issues.
 
 **Test Cases:**
+
 ```typescript
-describe('escapePythonString unicode handling', () => {
-  it('handles astral plane characters (emoji)', () => {
-    expect(escapePythonString('Hello 👋 World')).toBe("'Hello 👋 World'")
-  })
+describe("escapePythonString unicode handling", () => {
+  it("handles astral plane characters (emoji)", () => {
+    expect(escapePythonString("Hello 👋 World")).toBe("'Hello 👋 World'");
+  });
 
-  it('handles zero-width characters', () => {
-    expect(escapePythonString('a\u200Bb')).toBe("'a\u200Bb'") // Zero-width space
-  })
+  it("handles zero-width characters", () => {
+    expect(escapePythonString("a\u200Bb")).toBe("'a\u200Bb'"); // Zero-width space
+  });
 
-  it('handles right-to-left override', () => {
-    expect(escapePythonString('test\u202Eevil')).toBe("'test\u202Eevil'")
-  })
+  it("handles right-to-left override", () => {
+    expect(escapePythonString("test\u202Eevil")).toBe("'test\u202Eevil'");
+  });
 
-  it('handles null character', () => {
-    expect(escapePythonString('a\x00b')).toBe("'a\\x00b'")
-  })
+  it("handles null character", () => {
+    expect(escapePythonString("a\x00b")).toBe("'a\\x00b'");
+  });
 
-  it('handles combining characters', () => {
-    expect(escapePythonString('é')).toBe("'é'") // e + combining acute
-  })
+  it("handles combining characters", () => {
+    expect(escapePythonString("é")).toBe("'é'"); // e + combining acute
+  });
 
-  it('handles surrogate pairs correctly', () => {
-    expect(escapePythonString('𝕳𝖊𝖑𝖑𝖔')).toBe("'𝕳𝖊𝖑𝖑𝖔'")
-  })
-})
+  it("handles surrogate pairs correctly", () => {
+    expect(escapePythonString("𝕳𝖊𝖑𝖑𝖔")).toBe("'𝕳𝖊𝖑𝖑𝖔'");
+  });
+});
 ```
 
 **Acceptance Criteria:**
+
 - [ ] All Unicode edge cases tested
 - [ ] Tests verify Python interpreter compatibility
 - [ ] Any needed escaping added
@@ -845,20 +961,22 @@ describe('escapePythonString unicode handling', () => {
 **Description:** Handle null bytes which can cause issues in Python strings.
 
 **Implementation:**
+
 ```typescript
 export function escapePythonString(value: string): string {
   const escaped = value
-    .replaceAll('\\', '\\\\')
+    .replaceAll("\\", "\\\\")
     .replaceAll("'", "\\'")
-    .replaceAll('\n', '\\n')
-    .replaceAll('\r', '\\r')
-    .replaceAll('\t', '\\t')
-    .replaceAll('\0', '\\x00')  // Null byte
-  return `'${escaped}'`
+    .replaceAll("\n", "\\n")
+    .replaceAll("\r", "\\r")
+    .replaceAll("\t", "\\t")
+    .replaceAll("\0", "\\x00"); // Null byte
+  return `'${escaped}'`;
 }
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Null bytes properly escaped
 - [ ] Test verifies Python can parse the output
 - [ ] No breaking changes
@@ -872,49 +990,51 @@ export function escapePythonString(value: string): string {
 **Description:** Add property-based tests using fast-check to fuzz the escaping function.
 
 **Implementation:**
+
 ```typescript
-import fc from 'fast-check'
+import fc from "fast-check";
 
-describe('escapePythonString property-based tests', () => {
-  it('always produces valid Python string literals', () => {
+describe("escapePythonString property-based tests", () => {
+  it("always produces valid Python string literals", () => {
     fc.assert(
       fc.property(fc.string(), (input) => {
-        const escaped = escapePythonString(input)
+        const escaped = escapePythonString(input);
         // Must start and end with single quote
-        expect(escaped.startsWith("'")).toBe(true)
-        expect(escaped.endsWith("'")).toBe(true)
+        expect(escaped.startsWith("'")).toBe(true);
+        expect(escaped.endsWith("'")).toBe(true);
         // Must not contain unescaped single quotes
-        const inner = escaped.slice(1, -1)
-        expect(inner).not.toMatch(/(?<!\\)'/)
-      })
-    )
-  })
+        const inner = escaped.slice(1, -1);
+        expect(inner).not.toMatch(/(?<!\\)'/);
+      }),
+    );
+  });
 
-  it('never produces strings with unescaped newlines', () => {
+  it("never produces strings with unescaped newlines", () => {
     fc.assert(
       fc.property(fc.string(), (input) => {
-        const escaped = escapePythonString(input)
-        const inner = escaped.slice(1, -1)
-        expect(inner).not.toContain('\n')
-        expect(inner).not.toContain('\r')
-      })
-    )
-  })
+        const escaped = escapePythonString(input);
+        const inner = escaped.slice(1, -1);
+        expect(inner).not.toContain("\n");
+        expect(inner).not.toContain("\r");
+      }),
+    );
+  });
 
-  it('preserves string content through escape/unescape cycle', () => {
+  it("preserves string content through escape/unescape cycle", () => {
     fc.assert(
       fc.property(fc.string(), (input) => {
-        const escaped = escapePythonString(input)
+        const escaped = escapePythonString(input);
         // This would require a Python unescape function to fully verify
         // For now, verify length is >= input length
-        expect(escaped.length).toBeGreaterThanOrEqual(input.length + 2)
-      })
-    )
-  })
-})
+        expect(escaped.length).toBeGreaterThanOrEqual(input.length + 2);
+      }),
+    );
+  });
+});
 ```
 
 **Acceptance Criteria:**
+
 - [ ] fast-check added as dev dependency
 - [ ] Property-based tests cover escaping invariants
 - [ ] 1000+ iterations per property
@@ -929,6 +1049,7 @@ describe('escapePythonString property-based tests', () => {
 **Description:** Add comprehensive JSDoc documentation for the escaping function.
 
 **Documentation:**
+
 ```typescript
 /**
  * Escapes a string for safe inclusion in Python source code as a string literal.
@@ -965,6 +1086,7 @@ export function escapePythonString(value: string): string {
 ```
 
 **Acceptance Criteria:**
+
 - [ ] JSDoc documents all escaped characters
 - [ ] Security guarantees documented
 - [ ] Unicode behavior documented
@@ -977,6 +1099,7 @@ export function escapePythonString(value: string): string {
 **Objective:** Add end-to-end tests for the complete conversion pipeline.
 
 **Files Affected:**
+
 - `packages/convert/src/__tests__/` (new directory)
 - `packages/blocks/src/__tests__/` (new directory)
 
@@ -985,6 +1108,7 @@ export function escapePythonString(value: string): string {
 **Description:** Set up a fixtures directory with sample notebooks for testing.
 
 **Structure:**
+
 ```
 packages/convert/
 └── fixtures/
@@ -996,6 +1120,7 @@ packages/convert/
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Directory structure created
 - [ ] At least 5 representative test notebooks
 - [ ] Notebooks cover edge cases
@@ -1009,37 +1134,39 @@ packages/convert/
 **Description:** Create end-to-end tests for the full conversion pipeline.
 
 **Test Cases:**
+
 ```typescript
-describe('Jupyter to Deepnote Integration', () => {
-  it('converts simple notebook correctly', async () => {
+describe("Jupyter to Deepnote Integration", () => {
+  it("converts simple notebook correctly", async () => {
     const result = await convertIpynbFilesToDeepnoteFile(
-      ['fixtures/simple-notebook.ipynb'],
-      { outputPath: '/tmp/test.deepnote', projectName: 'Test' }
-    )
+      ["fixtures/simple-notebook.ipynb"],
+      { outputPath: "/tmp/test.deepnote", projectName: "Test" },
+    );
 
     // Verify output file exists and is valid YAML
-    const content = await fs.readFile('/tmp/test.deepnote', 'utf-8')
-    const parsed = YAML.parse(content)
+    const content = await fs.readFile("/tmp/test.deepnote", "utf-8");
+    const parsed = YAML.parse(content);
 
-    expect(parsed.project.notebooks).toHaveLength(1)
-    expect(parsed.project.notebooks[0].blocks).toHaveLength(/* expected */)
-  })
+    expect(parsed.project.notebooks).toHaveLength(1);
+    expect(parsed.project.notebooks[0].blocks).toHaveLength(/* expected */);
+  });
 
-  it('preserves code cell content exactly', async () => {
+  it("preserves code cell content exactly", async () => {
     // ...
-  })
+  });
 
-  it('converts markdown cells to markdown blocks', async () => {
+  it("converts markdown cells to markdown blocks", async () => {
     // ...
-  })
+  });
 
-  it('handles multiple input files', async () => {
+  it("handles multiple input files", async () => {
     // ...
-  })
-})
+  });
+});
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Full pipeline tested
 - [ ] Output file validity verified
 - [ ] Content preservation verified
@@ -1053,29 +1180,31 @@ describe('Jupyter to Deepnote Integration', () => {
 **Description:** Test the complete flow from Deepnote block to executable Python.
 
 **Test Cases:**
+
 ```typescript
-describe('Python Code Generation Integration', () => {
-  it('generates executable Python for all input block types', () => {
+describe("Python Code Generation Integration", () => {
+  it("generates executable Python for all input block types", () => {
     const blocks = [
-      createInputTextBlock({ name: 'var1', value: 'test' }),
-      createInputSliderBlock({ name: 'var2', value: 50, min: 0, max: 100 }),
-      createInputCheckboxBlock({ name: 'var3', value: true }),
-    ]
+      createInputTextBlock({ name: "var1", value: "test" }),
+      createInputSliderBlock({ name: "var2", value: 50, min: 0, max: 100 }),
+      createInputCheckboxBlock({ name: "var3", value: true }),
+    ];
 
     for (const block of blocks) {
-      const code = createPythonCode(block)
+      const code = createPythonCode(block);
       // Verify code is syntactically valid Python
-      expect(() => validatePythonSyntax(code)).not.toThrow()
+      expect(() => validatePythonSyntax(code)).not.toThrow();
     }
-  })
+  });
 
-  it('generates correct variable assignments', () => {
+  it("generates correct variable assignments", () => {
     // ...
-  })
-})
+  });
+});
 ```
 
 **Acceptance Criteria:**
+
 - [ ] All block types tested in integration
 - [ ] Python syntax validated
 - [ ] Edge cases covered
@@ -1091,6 +1220,7 @@ describe('Python Code Generation Integration', () => {
 **Note:** This may require a Deepnote → Jupyter converter which doesn't exist yet. If not feasible, document as future work.
 
 **Acceptance Criteria:**
+
 - [ ] Test implemented OR documented as future work
 - [ ] Content equivalence verified where possible
 
@@ -1103,6 +1233,7 @@ describe('Python Code Generation Integration', () => {
 **Description:** Add a dedicated job for integration tests that runs separately from unit tests.
 
 **Addition:**
+
 ```yaml
 integration-tests:
   runs-on: ubuntu-latest
@@ -1111,13 +1242,14 @@ integration-tests:
     - uses: pnpm/action-setup@v2
     - uses: actions/setup-node@v4
       with:
-        node-version: '22'
-        cache: 'pnpm'
+        node-version: "22"
+        cache: "pnpm"
     - run: pnpm install
     - run: pnpm test:integration
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Separate CI job for integration tests
 - [ ] `pnpm test:integration` script added to package.json
 - [ ] Integration tests isolated from unit tests
@@ -1135,18 +1267,28 @@ integration-tests:
 **Description:** Create a centralized error message formatter.
 
 **Target Implementation:**
+
 ```typescript
 // packages/blocks/src/errors/format.ts
-export function formatBlockError(blockId: string, blockType: string, message: string): string {
-  return `[${blockType}:${blockId}] ${message}`
+export function formatBlockError(
+  blockId: string,
+  blockType: string,
+  message: string,
+): string {
+  return `[${blockType}:${blockId}] ${message}`;
 }
 
-export function formatValidationError(field: string, expected: string, got: unknown): string {
-  return `${field} must be ${expected}, got ${typeof got}: ${JSON.stringify(got)}`
+export function formatValidationError(
+  field: string,
+  expected: string,
+  got: unknown,
+): string {
+  return `${field} must be ${expected}, got ${typeof got}: ${JSON.stringify(got)}`;
 }
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Error formatting centralized
 - [ ] Consistent error message format
 - [ ] All block errors use formatter
@@ -1160,16 +1302,20 @@ export function formatValidationError(field: string, expected: string, got: unkn
 **Description:** Create helper functions for common metadata access patterns.
 
 **Patterns to Extract:**
+
 ```typescript
 // Common pattern seen in multiple files:
-const variableName = sanitizePythonVariableName(block.metadata.deepnote_variable_name)
-const value = block.metadata.deepnote_variable_value
+const variableName = sanitizePythonVariableName(
+  block.metadata.deepnote_variable_name,
+);
+const value = block.metadata.deepnote_variable_value;
 
 // Could become:
-const { variableName, value } = extractInputBlockValues(block)
+const { variableName, value } = extractInputBlockValues(block);
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Common patterns identified and extracted
 - [ ] Helper functions created
 - [ ] Existing code refactored to use helpers
@@ -1183,19 +1329,21 @@ const { variableName, value } = extractInputBlockValues(block)
 **Description:** Create reusable schema components for repeated patterns.
 
 **Reusable Components:**
+
 ```typescript
 // Base schemas for common patterns
-const variableNameSchema = z.string().min(1)
-const variableValueStringSchema = z.string()
-const variableValueBooleanSchema = z.boolean()
+const variableNameSchema = z.string().min(1);
+const variableValueStringSchema = z.string();
+const variableValueBooleanSchema = z.boolean();
 
 // Reusable metadata base
 const inputBlockMetadataBase = z.object({
   deepnote_variable_name: variableNameSchema,
-})
+});
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Common schema patterns extracted
 - [ ] Schemas composed from base components
 - [ ] No duplicate schema definitions
@@ -1207,12 +1355,14 @@ const inputBlockMetadataBase = z.object({
 **Description:** Identify and remove any dead code paths.
 
 **Areas to Check:**
+
 - Unused exports
 - Unreachable branches
 - Commented-out code
 - Unused utility functions
 
 **Acceptance Criteria:**
+
 - [ ] Audit completed
 - [ ] Dead code removed
 - [ ] `pnpm biome:check` passes
@@ -1224,12 +1374,14 @@ const inputBlockMetadataBase = z.object({
 **Description:** Standardize import organization across all files.
 
 **Standard Order:**
+
 1. Node.js built-ins (with `node:` prefix)
 2. External dependencies (zod, ts-dedent, etc.)
 3. Internal absolute imports
 4. Relative imports
 
 **Acceptance Criteria:**
+
 - [ ] All files follow standard import order
 - [ ] `pnpm biome:check` passes
 - [ ] Consistent patterns across codebase
@@ -1247,6 +1399,7 @@ const inputBlockMetadataBase = z.object({
 **Description:** Ensure all exports have JSDoc documentation.
 
 **Acceptance Criteria:**
+
 - [ ] Every export has JSDoc
 - [ ] Examples provided for complex APIs
 - [ ] Parameter types documented
@@ -1260,6 +1413,7 @@ const inputBlockMetadataBase = z.object({
 **Description:** Create comprehensive API reference documentation.
 
 **Sections:**
+
 - Installation
 - Quick Start
 - API Reference (all exports)
@@ -1267,6 +1421,7 @@ const inputBlockMetadataBase = z.object({
 - Examples
 
 **Acceptance Criteria:**
+
 - [ ] README comprehensive
 - [ ] All public APIs documented
 - [ ] Examples for common use cases
@@ -1278,17 +1433,21 @@ const inputBlockMetadataBase = z.object({
 **Description:** Add deprecation warnings for any APIs that should be phased out.
 
 **Implementation:**
+
 ```typescript
 /**
  * @deprecated Use `dateRangePastPeriod` instead. Will be removed in v2.0.
  */
 export function dateRangePast7days(name: string): string {
-  console.warn('dateRangePast7days is deprecated. Use dateRangePastPeriod instead.')
-  return dateRangePastPeriod(name, { type: 'days', count: 7 })
+  console.warn(
+    "dateRangePast7days is deprecated. Use dateRangePastPeriod instead.",
+  );
+  return dateRangePastPeriod(name, { type: "days", count: 7 });
 }
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Deprecated APIs marked with `@deprecated`
 - [ ] Runtime warnings added
 - [ ] Migration path documented
@@ -1302,6 +1461,7 @@ export function dateRangePast7days(name: string): string {
 **Description:** Create a changelog following Keep a Changelog format.
 
 **Format:**
+
 ```markdown
 # Changelog
 
@@ -1310,25 +1470,31 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+
 - Unified date range function
 - Block handler registry pattern
 - Property-based tests for string escaping
 
 ### Changed
+
 - Block dispatch now uses registry instead of if-else chain
 - Type definitions now derived from Zod schemas
 
 ### Deprecated
+
 - Individual date range functions (use `dateRangePastPeriod`)
 
 ### Removed
+
 - N/A
 
 ### Fixed
+
 - String escaping now handles carriage returns and tabs
 ```
 
 **Acceptance Criteria:**
+
 - [ ] CHANGELOG created
 - [ ] Follows Keep a Changelog format
 - [ ] All Phase 1 changes documented
@@ -1342,12 +1508,14 @@ All notable changes to this project will be documented in this file.
 **Description:** Update Claude development guide with new patterns and conventions.
 
 **Additions:**
+
 - Block handler registry pattern
 - Template loading system
 - Schema-first type definitions
 - New testing conventions
 
 **Acceptance Criteria:**
+
 - [ ] CLAUDE.md updated with new patterns
 - [ ] Examples provided
 - [ ] Deprecations noted
@@ -1368,6 +1536,7 @@ All notable changes to this project will be documented in this file.
 ### Task Completion Checklist
 
 For each task:
+
 - [ ] Code changes implemented
 - [ ] Tests added/updated
 - [ ] `pnpm test` passes
@@ -1379,6 +1548,7 @@ For each task:
 ### Rollback Plan
 
 If a sprint causes issues:
+
 1. Revert to pre-sprint commit
 2. Document what went wrong
 3. Break task into smaller pieces
@@ -1390,17 +1560,17 @@ If a sprint causes issues:
 
 After Phase 1 completion:
 
-| Metric | Before | Target |
-|--------|--------|--------|
-| Date range functions | 6 | 1 |
-| Lines in if-else chain | 50+ | 5 |
-| Duplicate type definitions | ~15 | 0 |
-| String escaping test coverage | Basic | 100+ property tests |
-| Integration tests | 0 | 10+ |
+| Metric                        | Before | Target              |
+| ----------------------------- | ------ | ------------------- |
+| Date range functions          | 6      | 1                   |
+| Lines in if-else chain        | 50+    | 5                   |
+| Duplicate type definitions    | ~15    | 0                   |
+| String escaping test coverage | Basic  | 100+ property tests |
+| Integration tests             | 0      | 10+                 |
 
 ---
 
-*Plan created: 2025-12-29*
-*Based on: COMPREHENSIVE_CODEBASE_REVIEW.md*
-*Estimated sprints: 8*
-*Estimated tasks: 40*
+_Plan created: 2025-12-29_
+_Based on: COMPREHENSIVE_CODEBASE_REVIEW.md_
+_Estimated sprints: 8_
+_Estimated tasks: 40_

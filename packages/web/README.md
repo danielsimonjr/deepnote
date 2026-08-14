@@ -18,22 +18,26 @@ pnpm dev
 ```
 
 This starts:
+
 - Web frontend at http://localhost:3000
 - Backend server at http://localhost:8000
 
 ## Block Types
 
 ### Code Blocks
+
 - **Code**: Python code with Monaco editor
 - **SQL**: SQL queries with database selection
 
 ### Text/Display Blocks
+
 - **Text**: Markdown editor with preview
 - **Image**: Display images from URL
 - **Big Number**: Large metric display
 - **Table**: Data table display
 
 ### Input Blocks
+
 - **Text Input**: Single/multi-line text
 - **Number Input**: Numeric input with min/max/step
 - **Checkbox**: Boolean toggle
