@@ -156,8 +156,12 @@ jobs:
       - name: Run tests with coverage
         run: pnpm run test:coverage
 
+      # Skip when no Codecov token is configured. This fork has no repository
+      # secrets, so on a push to main the fork-PR guard below does not apply,
+      # the step runs, and `fail_ci_if_error: true` fails the whole Test job
+      # for a missing credential rather than for a real defect.
       - name: Upload coverage to Codecov
-        if: ${{ success() && (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork) }}
+        if: ${{ success() && secrets.CODECOV_TOKEN != '' && (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork) }}
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
