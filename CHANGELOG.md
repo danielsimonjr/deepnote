@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed — `.husky/pre-push` guarded the wrong thing (2026-08-14)
+
+The hook decided from `git symbolic-ref --short HEAD` (what is checked out)
+instead of from the refspec git feeds it on stdin (what is being pushed).
+That was wrong in both directions, and both were reproduced by running the
+hook against synthetic refspecs before the fix:
+
+- **False negative** — from a feature branch, `git push origin HEAD:main`
+  passed. That is the exact push the hook exists to block.
+- **False positive** — standing on `main`, `git push origin --delete
+some-branch` was rejected as "pushing directly to main", though `main` is
+  untouched. A guard that fires on unrelated work is what trains people to
+  reach for `--no-verify`, which then disables the true positive too.
+
+The hook now reads `<local_ref> <local_oid> <remote_ref> <remote_oid>` per
+line and acts only on `refs/heads/main`. An all-zero `local_oid` means a
+deletion, so deleting `main` is refused with its own message; the zero test
+is `case $local_oid in *[!0]*)`, which holds for SHA-1 and SHA-256 without
+hard-coding either length.
+
 ### Security — both open Dependabot alerts resolved (2026-08-03)
 
 - `brace-expansion` 5.0.6 -> 5.0.9 (high, needs 5.0.7)
