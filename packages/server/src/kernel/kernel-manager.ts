@@ -1,5 +1,5 @@
-import { spawn, ChildProcess } from 'child_process'
-import { EventEmitter } from 'events'
+import { type ChildProcess, spawn } from 'node:child_process'
+import { EventEmitter } from 'node:events'
 import { v4 as uuid } from 'uuid'
 
 export interface KernelInfo {
@@ -25,11 +25,11 @@ export class KernelManager extends EventEmitter {
     const id = uuid()
     const kernel = new KernelInstance(id)
 
-    kernel.on('status', (status) => {
+    kernel.on('status', status => {
       this.emit('kernelStatus', { kernelId: id, status })
     })
 
-    kernel.on('output', (output) => {
+    kernel.on('output', output => {
       this.emit('kernelOutput', { kernelId: id, ...output })
     })
 
@@ -72,7 +72,7 @@ export class KernelManager extends EventEmitter {
   }
 
   async shutdownAll(): Promise<void> {
-    const promises = Array.from(this.kernels.keys()).map((id) => this.shutdown(id))
+    const promises = Array.from(this.kernels.keys()).map(id => this.shutdown(id))
     await Promise.all(promises)
   }
 
@@ -83,7 +83,7 @@ export class KernelManager extends EventEmitter {
   }
 
   getActiveKernels(): KernelInfo[] {
-    return Array.from(this.kernels.values()).map((k) => k.getInfo())
+    return Array.from(this.kernels.values()).map(k => k.getInfo())
   }
 }
 
@@ -92,7 +92,6 @@ class KernelInstance extends EventEmitter {
   private status: KernelInfo['status'] = 'starting'
   private executionCount = 0
   private createdAt = new Date()
-  private outputBuffer = ''
   private currentBlockId: string | null = null
 
   constructor(private id: string) {
@@ -119,7 +118,7 @@ class KernelInstance extends EventEmitter {
         }
       })
 
-      this.process.on('error', (err) => {
+      this.process.on('error', err => {
         this.setStatus('error')
         reject(err)
       })
@@ -161,7 +160,7 @@ class KernelInstance extends EventEmitter {
     this.executionCount++
     this.setStatus('busy')
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const outputs: ExecutionResult['outputs'] = []
       const marker = `__EXEC_DONE_${this.executionCount}__`
 

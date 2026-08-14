@@ -24,6 +24,15 @@ export function useKernel() {
   const { setBlockExecuting, setBlockOutput } = useNotebookStore()
 
   // Connect to WebSocket server
+  //
+  // `connect` also reads `send` and `handleMessage`, but listing them is NOT the fix and
+  // would make this worse. Both are recreated on render, so `connect` would get a new
+  // identity every render; the `useEffect` below depends on `connect`, so it would tear
+  // down and reopen the WebSocket continuously — and `onclose` schedules
+  // `setTimeout(connect, 3000)` on top of that. The real fix is to hold the handlers in
+  // refs so `connect` stays stable: a restructure of this hook, not a dependency-array
+  // edit, and there is no test covering the reconnect path to do it against.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: see above — adding these deps causes a reconnect loop; needs a refs restructure with a test
   const connect = useCallback(() => {
     if (ws.current?.readyState === WebSocket.OPEN) return
 
@@ -45,12 +54,12 @@ export function useKernel() {
       setTimeout(connect, 3000)
     }
 
-    ws.current.onerror = (error) => {
+    ws.current.onerror = error => {
       console.error('WebSocket error:', error)
       setError('WebSocket connection failed')
     }
 
-    ws.current.onmessage = (event) => {
+    ws.current.onmessage = event => {
       try {
         const message: WSMessage = JSON.parse(event.data)
         handleMessage(message)
@@ -88,7 +97,7 @@ export function useKernel() {
 
         case 'execution_complete':
           if (message.blockId && message.result) {
-            const outputs = message.result.outputs.map((o) => ({
+            const outputs = message.result.outputs.map(o => ({
               type: o.type as 'text' | 'error' | 'image' | 'html',
               content: o.content,
               executionCount: message.result?.executionCount,
