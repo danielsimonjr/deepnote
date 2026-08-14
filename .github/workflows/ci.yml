@@ -134,6 +134,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
 
+    # Hoisted to job level so the upload step can TEST for it. The `secrets`
+    # context is not available in a step-level `if:` — using it there makes the
+    # whole workflow file invalid, which GitHub reports as a run that fails in
+    # 0s with zero jobs and no logs.
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
@@ -161,10 +168,10 @@ jobs:
       # the step runs, and `fail_ci_if_error: true` fails the whole Test job
       # for a missing credential rather than for a real defect.
       - name: Upload coverage to Codecov
-        if: ${{ success() && secrets.CODECOV_TOKEN != '' && (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork) }}
+        if: ${{ success() && env.CODECOV_TOKEN != '' && (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork) }}
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ env.CODECOV_TOKEN }}
           files: ./coverage/lcov.info
           fail_ci_if_error: true
   license-check:
