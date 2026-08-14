@@ -1,5 +1,5 @@
-import { WebSocketServer, WebSocket } from 'ws'
-import { KernelManager } from './kernel-manager.js'
+import { WebSocket, type WebSocketServer } from 'ws'
+import type { KernelManager } from './kernel-manager.js'
 
 interface WSMessage {
   type: string
@@ -36,11 +36,11 @@ export function setupWebSocket(wss: WebSocketServer, kernelManager: KernelManage
     }
   }
 
-  wss.on('connection', (ws) => {
+  wss.on('connection', ws => {
     console.log('WebSocket client connected')
     clients.set(ws, {})
 
-    ws.on('message', async (data) => {
+    ws.on('message', async data => {
       try {
         const message: WSMessage = JSON.parse(data.toString())
         await handleMessage(ws, message)
@@ -57,7 +57,7 @@ export function setupWebSocket(wss: WebSocketServer, kernelManager: KernelManage
       clients.delete(ws)
     })
 
-    ws.on('error', (error) => {
+    ws.on('error', error => {
       console.error('WebSocket error:', error)
     })
   })

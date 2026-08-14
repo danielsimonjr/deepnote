@@ -13,16 +13,16 @@ This document provides a comprehensive analysis of the Deepnote monorepo, coveri
 
 ### Key Findings
 
-| Metric | Status | Score |
-|--------|--------|-------|
-| **Overall Test Coverage** | Mixed | 45% |
-| **@deepnote/blocks** | Excellent | 90% |
-| **@deepnote/web** | Critical Gap | 0% |
-| **@deepnote/server** | Critical Gap | 0% |
-| **Code Quality Tooling** | Excellent | 9/10 |
-| **Type Safety** | Excellent | 9/10 |
-| **Security Posture** | Fair | 6/10 |
-| **Documentation** | Fair | 6/10 |
+| Metric                    | Status       | Score |
+| ------------------------- | ------------ | ----- |
+| **Overall Test Coverage** | Mixed        | 45%   |
+| **@deepnote/blocks**      | Excellent    | 90%   |
+| **@deepnote/web**         | Critical Gap | 0%    |
+| **@deepnote/server**      | Critical Gap | 0%    |
+| **Code Quality Tooling**  | Excellent    | 9/10  |
+| **Type Safety**           | Excellent    | 9/10  |
+| **Security Posture**      | Fair         | 6/10  |
+| **Documentation**         | Fair         | 6/10  |
 
 ### Critical Actions Required
 
@@ -58,33 +58,33 @@ The `@deepnote/blocks` package demonstrates excellent test coverage with 16 test
 
 #### Test File Inventory
 
-| Test File | Source File | Coverage | Status |
-|-----------|-------------|----------|--------|
-| `big-number-blocks.test.ts` | `big-number-blocks.ts` | 95% | Excellent |
-| `button-blocks.test.ts` | `button-blocks.ts` | 95% | Excellent |
-| `code-blocks.test.ts` | `code-blocks.ts` | 90% | Excellent |
-| `data-frame.test.ts` | `data-frame.ts` | 95% | Excellent |
-| `image-blocks.test.ts` | `image-blocks.ts` | 95% | Excellent |
-| `input-blocks.test.ts` | `input-blocks.ts` | 85% | Very Good |
-| `python-utils.test.ts` | `python-utils.ts` | 98% | Excellent |
-| `sql-blocks.test.ts` | `sql-blocks.ts` | 95% | Excellent |
-| `text-blocks.test.ts` | `text-blocks.ts` | 95% | Excellent |
-| `visualization-blocks.test.ts` | `visualization-blocks.ts` | 95% | Excellent |
-| `python-code.test.ts` | `python-code.ts` | 95% | Excellent |
-| `markdown.test.ts` | `markdown.ts` | 100% | Perfect |
-| `parse-yaml.test.ts` | `parse-yaml.ts` | 100% | Perfect |
-| `deserialize-deepnote-file.test.ts` | `deserialize-deepnote-file.ts` | 95% | Excellent |
-| `branded-ids.test.ts` | `branded-ids.ts` | 100% | Perfect |
-| `validation/index.test.ts` | `validation/index.ts` | 100% | Perfect |
+| Test File                           | Source File                    | Coverage | Status    |
+| ----------------------------------- | ------------------------------ | -------- | --------- |
+| `big-number-blocks.test.ts`         | `big-number-blocks.ts`         | 95%      | Excellent |
+| `button-blocks.test.ts`             | `button-blocks.ts`             | 95%      | Excellent |
+| `code-blocks.test.ts`               | `code-blocks.ts`               | 90%      | Excellent |
+| `data-frame.test.ts`                | `data-frame.ts`                | 95%      | Excellent |
+| `image-blocks.test.ts`              | `image-blocks.ts`              | 95%      | Excellent |
+| `input-blocks.test.ts`              | `input-blocks.ts`              | 85%      | Very Good |
+| `python-utils.test.ts`              | `python-utils.ts`              | 98%      | Excellent |
+| `sql-blocks.test.ts`                | `sql-blocks.ts`                | 95%      | Excellent |
+| `text-blocks.test.ts`               | `text-blocks.ts`               | 95%      | Excellent |
+| `visualization-blocks.test.ts`      | `visualization-blocks.ts`      | 95%      | Excellent |
+| `python-code.test.ts`               | `python-code.ts`               | 95%      | Excellent |
+| `markdown.test.ts`                  | `markdown.ts`                  | 100%     | Perfect   |
+| `parse-yaml.test.ts`                | `parse-yaml.ts`                | 100%     | Perfect   |
+| `deserialize-deepnote-file.test.ts` | `deserialize-deepnote-file.ts` | 95%      | Excellent |
+| `branded-ids.test.ts`               | `branded-ids.ts`               | 100%     | Perfect   |
+| `validation/index.test.ts`          | `validation/index.ts`          | 100%     | Perfect   |
 
 #### Untested Files (Critical Gaps)
 
-| File | Status | Priority |
-|------|--------|----------|
-| `sql-utils.ts` | **NO TESTS** | HIGH |
-| `python-snippets.ts` | Indirect only | MEDIUM |
-| `table-state.ts` | Type definitions only | LOW |
-| `blocks.ts` | Type definitions only | LOW |
+| File                 | Status                | Priority |
+| -------------------- | --------------------- | -------- |
+| `sql-utils.ts`       | **NO TESTS**          | HIGH     |
+| `python-snippets.ts` | Indirect only         | MEDIUM   |
+| `table-state.ts`     | Type definitions only | LOW      |
+| `blocks.ts`          | Type definitions only | LOW      |
 
 #### Test Quality Strengths
 
@@ -112,30 +112,31 @@ The `@deepnote/web` package has **zero test coverage**. This represents a signif
 
 #### Source Files Requiring Tests
 
-| File | Complexity | Test Cases Needed | Priority |
-|------|------------|-------------------|----------|
-| `stores/notebook-store.ts` | HIGH | 50+ | CRITICAL |
-| `stores/kernel-store.ts` | MEDIUM | 25+ | HIGH |
-| `stores/ui-store.ts` | MEDIUM | 20+ | HIGH |
-| `hooks/useKernel.ts` | VERY HIGH | 40+ | CRITICAL |
-| `components/blocks/BlockContainer.tsx` | VERY HIGH | 45+ | CRITICAL |
-| `components/blocks/CodeBlock.tsx` | MEDIUM | 15+ | HIGH |
-| `components/blocks/SQLBlock.tsx` | MEDIUM | 18+ | HIGH |
-| `components/blocks/TextBlock.tsx` | MEDIUM | 15+ | MEDIUM |
-| `components/blocks/InputBlocks.tsx` | HIGH | 40+ | HIGH |
-| `components/blocks/DisplayBlocks.tsx` | HIGH | 35+ | HIGH |
-| `components/notebook/NotebookView.tsx` | MEDIUM | 20+ | HIGH |
-| `components/sidebar/Sidebar.tsx` | MEDIUM | 28+ | HIGH |
-| `components/toolbar/Toolbar.tsx` | MEDIUM | 25+ | MEDIUM |
-| `components/Layout.tsx` | LOW | 10+ | LOW |
-| `App.tsx` | LOW | 5+ | LOW |
-| `main.tsx` | LOW | 3+ | LOW |
+| File                                   | Complexity | Test Cases Needed | Priority |
+| -------------------------------------- | ---------- | ----------------- | -------- |
+| `stores/notebook-store.ts`             | HIGH       | 50+               | CRITICAL |
+| `stores/kernel-store.ts`               | MEDIUM     | 25+               | HIGH     |
+| `stores/ui-store.ts`                   | MEDIUM     | 20+               | HIGH     |
+| `hooks/useKernel.ts`                   | VERY HIGH  | 40+               | CRITICAL |
+| `components/blocks/BlockContainer.tsx` | VERY HIGH  | 45+               | CRITICAL |
+| `components/blocks/CodeBlock.tsx`      | MEDIUM     | 15+               | HIGH     |
+| `components/blocks/SQLBlock.tsx`       | MEDIUM     | 18+               | HIGH     |
+| `components/blocks/TextBlock.tsx`      | MEDIUM     | 15+               | MEDIUM   |
+| `components/blocks/InputBlocks.tsx`    | HIGH       | 40+               | HIGH     |
+| `components/blocks/DisplayBlocks.tsx`  | HIGH       | 35+               | HIGH     |
+| `components/notebook/NotebookView.tsx` | MEDIUM     | 20+               | HIGH     |
+| `components/sidebar/Sidebar.tsx`       | MEDIUM     | 28+               | HIGH     |
+| `components/toolbar/Toolbar.tsx`       | MEDIUM     | 25+               | MEDIUM   |
+| `components/Layout.tsx`                | LOW        | 10+               | LOW      |
+| `App.tsx`                              | LOW        | 5+                | LOW      |
+| `main.tsx`                             | LOW        | 3+                | LOW      |
 
 **Total: ~394 test cases needed**
 
 #### Critical Components Analysis
 
 ##### notebook-store.ts (169 lines)
+
 ```
 Required Test Categories:
 ├── Notebook Operations (12 tests)
@@ -157,6 +158,7 @@ Required Test Categories:
 ```
 
 ##### useKernel.ts (173 lines)
+
 ```
 Required Test Categories:
 ├── Connection Management (8 tests)
@@ -187,12 +189,12 @@ The `@deepnote/server` package has **zero test coverage**. This is the execution
 
 #### Source Files Requiring Tests
 
-| File | Complexity | Test Cases Needed | Priority |
-|------|------------|-------------------|----------|
-| `kernel/kernel-manager.ts` | VERY HIGH | 55+ | CRITICAL |
-| `kernel/websocket.ts` | HIGH | 35+ | CRITICAL |
-| `api/router.ts` | HIGH | 50+ | HIGH |
-| `index.ts` | MEDIUM | 18+ | MEDIUM |
+| File                       | Complexity | Test Cases Needed | Priority |
+| -------------------------- | ---------- | ----------------- | -------- |
+| `kernel/kernel-manager.ts` | VERY HIGH  | 55+               | CRITICAL |
+| `kernel/websocket.ts`      | HIGH       | 35+               | CRITICAL |
+| `api/router.ts`            | HIGH       | 50+               | HIGH     |
+| `index.ts`                 | MEDIUM     | 18+               | MEDIUM   |
 
 **Total: ~158 test cases needed**
 
@@ -308,12 +310,12 @@ Internal Dependency Graph:
 
 ### 2.3 Build Configuration Assessment
 
-| Aspect | Status | Notes |
-|--------|--------|-------|
-| TypeScript Strict Mode | Enabled | All strict checks on |
-| Module System | Inconsistent | Root: CJS, packages: ESM |
-| Build Tools | Appropriate | tsdown for libs, Vite for web |
-| Output Formats | Good | ESM + CJS for public packages |
+| Aspect                 | Status       | Notes                         |
+| ---------------------- | ------------ | ----------------------------- |
+| TypeScript Strict Mode | Enabled      | All strict checks on          |
+| Module System          | Inconsistent | Root: CJS, packages: ESM      |
+| Build Tools            | Appropriate  | tsdown for libs, Vite for web |
+| Output Formats         | Good         | ESM + CJS for public packages |
 
 ### 2.4 Architectural Issues
 
@@ -327,26 +329,28 @@ Internal Dependency Graph:
 
 ### 3.1 Tooling Configuration
 
-| Tool | Purpose | Configuration Quality |
-|------|---------|----------------------|
-| **Biome** | Linting/Formatting | Excellent (127 lines) |
-| **Prettier** | Markdown/YAML | Good |
-| **Vitest** | Testing | Good |
-| **cspell** | Spell check | Comprehensive |
-| **Husky** | Git hooks | Configured |
-| **lint-staged** | Pre-commit | Configured |
+| Tool            | Purpose            | Configuration Quality |
+| --------------- | ------------------ | --------------------- |
+| **Biome**       | Linting/Formatting | Excellent (127 lines) |
+| **Prettier**    | Markdown/YAML      | Good                  |
+| **Vitest**      | Testing            | Good                  |
+| **cspell**      | Spell check        | Comprehensive         |
+| **Husky**       | Git hooks          | Configured            |
+| **lint-staged** | Pre-commit         | Configured            |
 
 ### 3.2 Type Safety Patterns
 
 #### Branded Types (Excellent)
+
 ```typescript
 // packages/blocks/src/types/branded-ids.ts
-type Brand<T, B> = T & { readonly [__brand]: B }
-export type BlockId = Brand<string, 'BlockId'>
-export type NotebookId = Brand<string, 'NotebookId'>
+type Brand<T, B> = T & { readonly [__brand]: B };
+export type BlockId = Brand<string, "BlockId">;
+export type NotebookId = Brand<string, "NotebookId">;
 ```
 
 #### Zod Schemas (Good)
+
 ```typescript
 // packages/blocks/src/deserialize-file/deepnote-file-schema.ts
 export const deepnoteBlockSchema = z.object({
@@ -354,29 +358,30 @@ export const deepnoteBlockSchema = z.object({
   type: z.string(), // Could be more specific
   content: z.string().optional(),
   // ...
-})
+});
 ```
 
 #### Custom Validation (Good)
+
 ```typescript
 // packages/blocks/src/validation/index.ts
 export interface ValidationResult<T> {
-  success: boolean
-  data?: T
-  errors: string[]
-  warnings: string[]
+  success: boolean;
+  data?: T;
+  errors: string[];
+  warnings: string[];
 }
 ```
 
 ### 3.3 Code Smells Identified
 
-| Issue | Location | Severity |
-|-------|----------|----------|
-| Overly permissive type guards | `database-integration-types.ts` | Medium |
-| Magic strings in type unions | `input-blocks.ts` | Low |
-| Inconsistent error patterns | Multiple files | Medium |
-| Console.log in production | `server/src/index.ts` | Medium |
-| 8 TODO comments | `packages/web/` | Low |
+| Issue                         | Location                        | Severity |
+| ----------------------------- | ------------------------------- | -------- |
+| Overly permissive type guards | `database-integration-types.ts` | Medium   |
+| Magic strings in type unions  | `input-blocks.ts`               | Low      |
+| Inconsistent error patterns   | Multiple files                  | Medium   |
+| Console.log in production     | `server/src/index.ts`           | Medium   |
+| 8 TODO comments               | `packages/web/`                 | Low      |
 
 ---
 
@@ -384,22 +389,22 @@ export interface ValidationResult<T> {
 
 ### 4.1 Input Validation
 
-| Area | Status | Details |
-|------|--------|---------|
-| Python string escaping | Excellent | Proper backslash/quote/newline handling |
-| Image URL validation | Good | Blocks javascript:, whitelists protocols |
-| Date validation | Good | Validates format AND actual date validity |
-| SQL input | Needs review | No explicit sanitization |
+| Area                   | Status       | Details                                   |
+| ---------------------- | ------------ | ----------------------------------------- |
+| Python string escaping | Excellent    | Proper backslash/quote/newline handling   |
+| Image URL validation   | Good         | Blocks javascript:, whitelists protocols  |
+| Date validation        | Good         | Validates format AND actual date validity |
+| SQL input              | Needs review | No explicit sanitization                  |
 
 ### 4.2 Server Security
 
-| Check | Status | Risk |
-|-------|--------|------|
-| CORS configuration | OPEN | High - allows all origins |
-| Rate limiting | MISSING | High - DoS vulnerability |
-| JSON body size limit | DEFAULT | Medium - 100kb limit |
-| Signal handlers | PARTIAL | Medium - only SIGTERM |
-| Environment validation | MISSING | Low |
+| Check                  | Status  | Risk                      |
+| ---------------------- | ------- | ------------------------- |
+| CORS configuration     | OPEN    | High - allows all origins |
+| Rate limiting          | MISSING | High - DoS vulnerability  |
+| JSON body size limit   | DEFAULT | Medium - 100kb limit      |
+| Signal handlers        | PARTIAL | Medium - only SIGTERM     |
+| Environment validation | MISSING | Low                       |
 
 ### 4.3 XSS Prevention
 
@@ -407,7 +412,7 @@ export interface ValidationResult<T> {
 // packages/blocks/src/blocks/image-blocks.ts
 export function isValidImageUrl(url: string): boolean {
   // Blocks javascript: protocol - GOOD
-  if (/^javascript:/i.test(url)) return false
+  if (/^javascript:/i.test(url)) return false;
 
   // SVG+XML allowed - POTENTIAL RISK
   // SVGs can contain JavaScript
@@ -428,11 +433,11 @@ export function isValidImageUrl(url: string): boolean {
 
 ### 5.1 Version Inconsistencies
 
-| Dependency | blocks | convert | server | Issue |
-|------------|--------|---------|--------|-------|
-| zod | `3.25.76` | `^3.25.76` | - | Pinned vs range |
-| yaml | `^2.8.1` | `^2.8.1` | `^2.6.1` | Version drift |
-| uuid | - | `^13.0.0` | `^11.0.3` | Major mismatch |
+| Dependency | blocks    | convert    | server    | Issue           |
+| ---------- | --------- | ---------- | --------- | --------------- |
+| zod        | `3.25.76` | `^3.25.76` | -         | Pinned vs range |
+| yaml       | `^2.8.1`  | `^2.8.1`   | `^2.6.1`  | Version drift   |
+| uuid       | -         | `^13.0.0`  | `^11.0.3` | Major mismatch  |
 
 ### 5.2 Duplicate Dependencies
 
@@ -445,6 +450,7 @@ The following packages are duplicated across multiple packages and should be hoi
 ### 5.3 Recommended pnpm Override
 
 Add to root `package.json`:
+
 ```json
 {
   "pnpm": {
@@ -463,43 +469,43 @@ Add to root `package.json`:
 
 ### 6.1 Critical Priority (Do Now)
 
-| # | Recommendation | Effort | Impact |
-|---|----------------|--------|--------|
-| 1 | Add tests for `kernel-manager.ts` | 8-10h | Critical |
-| 2 | Add tests for `notebook-store.ts` | 6-8h | Critical |
-| 3 | Add tests for `useKernel.ts` | 6-8h | Critical |
-| 4 | Add tests for `sql-utils.ts` | 2h | High |
-| 5 | Configure CORS whitelist | 1h | High |
+| #   | Recommendation                    | Effort | Impact   |
+| --- | --------------------------------- | ------ | -------- |
+| 1   | Add tests for `kernel-manager.ts` | 8-10h  | Critical |
+| 2   | Add tests for `notebook-store.ts` | 6-8h   | Critical |
+| 3   | Add tests for `useKernel.ts`      | 6-8h   | Critical |
+| 4   | Add tests for `sql-utils.ts`      | 2h     | High     |
+| 5   | Configure CORS whitelist          | 1h     | High     |
 
 ### 6.2 High Priority (This Sprint)
 
-| # | Recommendation | Effort | Impact |
-|---|----------------|--------|--------|
-| 6 | Add tests for `BlockContainer.tsx` | 6-8h | High |
-| 7 | Add tests for `api/router.ts` | 6-8h | High |
-| 8 | Add tests for `websocket.ts` | 5-7h | High |
-| 9 | Add rate limiting to server | 2h | High |
-| 10 | Standardize dependency versions | 1h | Medium |
+| #   | Recommendation                     | Effort | Impact |
+| --- | ---------------------------------- | ------ | ------ |
+| 6   | Add tests for `BlockContainer.tsx` | 6-8h   | High   |
+| 7   | Add tests for `api/router.ts`      | 6-8h   | High   |
+| 8   | Add tests for `websocket.ts`       | 5-7h   | High   |
+| 9   | Add rate limiting to server        | 2h     | High   |
+| 10  | Standardize dependency versions    | 1h     | Medium |
 
 ### 6.3 Medium Priority (Next Sprint)
 
-| # | Recommendation | Effort | Impact |
-|---|----------------|--------|--------|
-| 11 | Add tests for input/display blocks | 10-14h | Medium |
-| 12 | Implement structured logging | 4h | Medium |
-| 13 | Add environment validation | 2h | Medium |
-| 14 | Complete README documentation | 4h | Medium |
-| 15 | Create .editorconfig | 0.5h | Low |
+| #   | Recommendation                     | Effort | Impact |
+| --- | ---------------------------------- | ------ | ------ |
+| 11  | Add tests for input/display blocks | 10-14h | Medium |
+| 12  | Implement structured logging       | 4h     | Medium |
+| 13  | Add environment validation         | 2h     | Medium |
+| 14  | Complete README documentation      | 4h     | Medium |
+| 15  | Create .editorconfig               | 0.5h   | Low    |
 
 ### 6.4 Low Priority (Backlog)
 
-| # | Recommendation | Effort | Impact |
-|---|----------------|--------|--------|
-| 16 | Add snapshot tests for code generation | 4h | Low |
-| 17 | Create shared configuration package | 8h | Low |
-| 18 | Add GitHub issue/PR templates | 1h | Low |
-| 19 | Document TODOs as GitHub issues | 1h | Low |
-| 20 | Add E2E test suite | 20h | Medium |
+| #   | Recommendation                         | Effort | Impact |
+| --- | -------------------------------------- | ------ | ------ |
+| 16  | Add snapshot tests for code generation | 4h     | Low    |
+| 17  | Create shared configuration package    | 8h     | Low    |
+| 18  | Add GitHub issue/PR templates          | 1h     | Low    |
+| 19  | Document TODOs as GitHub issues        | 1h     | Low    |
+| 20  | Add E2E test suite                     | 20h    | Medium |
 
 ---
 
@@ -551,12 +557,12 @@ Week 7:
 
 ### Coverage Targets
 
-| Phase | Target Coverage | Packages |
-|-------|-----------------|----------|
-| Phase 1 Complete | 50%+ | server: 70%, web: 30% |
-| Phase 2 Complete | 75%+ | server: 90%, web: 60% |
-| Phase 3 Complete | 85%+ | server: 95%, web: 80% |
-| Phase 4 Complete | 90%+ | All packages: 90%+ |
+| Phase            | Target Coverage | Packages              |
+| ---------------- | --------------- | --------------------- |
+| Phase 1 Complete | 50%+            | server: 70%, web: 30% |
+| Phase 2 Complete | 75%+            | server: 90%, web: 60% |
+| Phase 3 Complete | 85%+            | server: 95%, web: 80% |
+| Phase 4 Complete | 90%+            | All packages: 90%+    |
 
 ---
 
@@ -599,31 +605,31 @@ Week 7:
 
 ### Lines of Code by Package
 
-| Package | Source Lines | Test Lines | Ratio |
-|---------|--------------|------------|-------|
-| @deepnote/blocks | ~2,500 | ~3,000 | 1:1.2 |
-| @deepnote/web | ~1,200 | 0 | 1:0 |
-| @deepnote/server | ~600 | 0 | 1:0 |
-| @deepnote/convert | ~800 | ~200 | 1:0.25 |
-| @deepnote/database-integrations | ~300 | ~50 | 1:0.17 |
+| Package                         | Source Lines | Test Lines | Ratio  |
+| ------------------------------- | ------------ | ---------- | ------ |
+| @deepnote/blocks                | ~2,500       | ~3,000     | 1:1.2  |
+| @deepnote/web                   | ~1,200       | 0          | 1:0    |
+| @deepnote/server                | ~600         | 0          | 1:0    |
+| @deepnote/convert               | ~800         | ~200       | 1:0.25 |
+| @deepnote/database-integrations | ~300         | ~50        | 1:0.17 |
 
 ### Test Case Estimates
 
-| Package | Current | Needed | Gap |
-|---------|---------|--------|-----|
-| @deepnote/blocks | ~200 | ~220 | 20 |
-| @deepnote/web | 0 | ~400 | 400 |
-| @deepnote/server | 0 | ~160 | 160 |
-| **Total** | ~200 | ~780 | **580** |
+| Package          | Current | Needed | Gap     |
+| ---------------- | ------- | ------ | ------- |
+| @deepnote/blocks | ~200    | ~220   | 20      |
+| @deepnote/web    | 0       | ~400   | 400     |
+| @deepnote/server | 0       | ~160   | 160     |
+| **Total**        | ~200    | ~780   | **580** |
 
 ---
 
 ## Document History
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| 1.0 | 2025-12-28 | Claude Code | Initial comprehensive review |
+| Version | Date       | Author      | Changes                      |
+| ------- | ---------- | ----------- | ---------------------------- |
+| 1.0     | 2025-12-28 | Claude Code | Initial comprehensive review |
 
 ---
 
-*This report was generated by automated analysis. Human review is recommended for implementation decisions.*
+_This report was generated by automated analysis. Human review is recommended for implementation decisions._

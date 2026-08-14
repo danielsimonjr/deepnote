@@ -26,11 +26,11 @@ export const useKernelStore = create<KernelState>((set, get) => ({
   currentExecution: null,
   error: null,
 
-  setStatus: (status) => set({ status }),
-  setError: (error) => set({ error }),
+  setStatus: status => set({ status }),
+  setError: error => set({ error }),
 
-  enqueue: (item) =>
-    set((state) => ({
+  enqueue: item =>
+    set(state => ({
       executionQueue: [...state.executionQueue, item],
     })),
 
@@ -42,7 +42,7 @@ export const useKernelStore = create<KernelState>((set, get) => ({
     return item
   },
 
-  setCurrentExecution: (item) => set({ currentExecution: item }),
+  setCurrentExecution: item => set({ currentExecution: item }),
 
   clearQueue: () => set({ executionQueue: [], currentExecution: null }),
 }))

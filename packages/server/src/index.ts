@@ -1,12 +1,12 @@
+import { createServer } from 'node:http'
 import cors from 'cors'
 import express from 'express'
-import { createServer } from 'http'
 import { WebSocketServer } from 'ws'
 import { createApiRouter } from './api/router.js'
 import { KernelManager } from './kernel/kernel-manager.js'
 import { setupWebSocket } from './kernel/websocket.js'
 
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : 8000
+const PORT = process.env.PORT ? Number.parseInt(process.env.PORT, 10) : 8000
 
 const app = express()
 const server = createServer(app)

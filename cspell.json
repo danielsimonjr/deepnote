@@ -111,6 +111,36 @@
     "nbconvert",
     "Papermill",
     "Jupytext",
-    "workflows"
+    "workflows",
+
+    "classmethod",
+    "delattr",
+    "divmod",
+    "frozenset",
+    "getattr",
+    "hasattr",
+    "isinstance",
+    "issubclass",
+    "memoryview",
+    "repr",
+    "setattr",
+    "staticmethod",
+
+    "mediatype",
+    "partialize",
+    "defu",
+    "PYTHONUNBUFFERED",
+    "refspec",
+    "refspecs",
+    "smol",
+
+    "ABAQAA",
+    "Brien",
+    "Eevil",
+    "Subsubsection",
+    "mydataframe",
+    "myvaluename",
+    "myvariablename",
+    "𝕳𝖊𝖑𝖑𝖔"
   ]
 }

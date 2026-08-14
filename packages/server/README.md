@@ -49,11 +49,13 @@ Connect to `ws://localhost:8000/ws`
 ### Messages
 
 **Create Kernel:**
+
 ```json
 { "type": "create_kernel" }
 ```
 
 **Execute Code:**
+
 ```json
 {
   "type": "execute",
@@ -64,11 +66,13 @@ Connect to `ws://localhost:8000/ws`
 ```
 
 **Interrupt:**
+
 ```json
 { "type": "interrupt", "kernelId": "..." }
 ```
 
 **Restart:**
+
 ```json
 { "type": "restart", "kernelId": "..." }
 ```

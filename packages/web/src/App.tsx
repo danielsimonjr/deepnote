@@ -2,7 +2,7 @@ import { Layout } from './components/Layout'
 import { useUIStore } from './stores/ui-store'
 
 function App() {
-  const theme = useUIStore((state) => state.theme)
+  const theme = useUIStore(state => state.theme)
 
   return (
     <div className={theme}>

@@ -156,8 +156,34 @@ jobs:
       - name: Run tests with coverage
         run: pnpm run test:coverage
 
+      # Is a Codecov token configured? This fork has no repository secrets, so
+      # on a push to main the fork-PR guard below does not apply, the upload
+      # runs, and `fail_ci_if_error: true` fails the whole Test job for a
+      # missing credential rather than for a real defect.
+      #
+      # The token is scoped to THIS step and the upload step only. It is
+      # deliberately not a job-level `env`: that would place the secret in the
+      # environment of `pnpm install` and `pnpm run test:coverage`, which
+      # execute third-party package code. This step runs no dependency code,
+      # and emits only a boolean — never the value.
+      #
+      # It cannot be a step-level `if:` on the upload itself, because the
+      # `secrets` context is not available there; using it makes the whole
+      # workflow file invalid, which GitHub reports as a run failing in 0s with
+      # zero jobs and no logs rather than as a syntax error.
+      - name: Check for a Codecov token
+        id: codecov_token
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: |
+          if [ -n "$CODECOV_TOKEN" ]; then
+            echo 'present=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'present=false' >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Upload coverage to Codecov
-        if: ${{ success() && (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork) }}
+        if: ${{ success() && steps.codecov_token.outputs.present == 'true' && (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork) }}
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
