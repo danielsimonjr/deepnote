@@ -4,6 +4,41 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed — CI now runs on this fork, and is green rather than red-on-arrival (2026-08-14)
+
+GitHub disables inherited workflows on a fork, so `ci.yml` had **never run** since
+this repository was created and PRs #17, #18 and #19 all merged with **no gate** —
+`MERGEABLE / CLEAN` reported the absence of a merge conflict, nothing more. Actions
+is now enabled. Switching it on unmodified would have produced a permanently-red
+gate, so the causes were fixed first:
+
+- **`@deepnote/blocks` advertised files that do not exist.** `package.json` declared
+  `types: ./dist/index.d.ts` and `import: ./dist/index.js`, but `tsdown --dts` emits
+  `index.d.cts` / `index.d.mts` / `index.mjs`. Every consumer silently resolved **no
+  types**, and an ESM `import` resolved to a missing file. Now uses per-condition
+  `exports` pointing at what is actually built. (Present upstream too; not a local
+  regression.)
+- **`pnpm typecheck` went from 237 errors to 0.** The root `tsconfig.json` set no
+  `include`, so it type-checked the whole repo — including `packages/web`'s browser
+  code with `jsx` unset and no `dom` lib. Adding those at the root would leak DOM
+  globals into the server packages, so the fix is structural: `blocks`, `convert` and
+  `database-integrations` each get their own `tsconfig.json`, and the root pass is
+  scoped to `vitest.config.ts` + `test-helpers/`. **Verified by mutation** — a
+  deliberate type error injected into each of the five packages _and_ into
+  `test-helpers/` is caught, so the pass is not green merely because it stopped
+  looking.
+- **`pnpm audit` clean** (was 1 high / 1 moderate / 1 low, all dev-only). Fixed at the
+  parents, not the leaves: `cspell` 9.2.2 → 10.0.1 (`smol-toml`), `tsdown` 0.15.9 →
+  0.22.14 (`diff`), and `postcss` in `@deepnote/web` (`nanoid`).
+- **`pnpm spell-check` clean** — 33 findings in 13 files, mostly real Python builtins
+  in `python-utils.ts` plus test fixtures, added to `cspell.json`.
+- **Codecov upload no longer fails the Test job for a missing credential.** On a push
+  to `main` the fork-PR guard does not apply, so the step ran with no `CODECOV_TOKEN`
+  and `fail_ci_if_error: true` failed the job. The token is checked in a dedicated
+  step and kept **out of job-level `env`** — hoisting it there would place the secret
+  in the environment of `pnpm install` and `pnpm run test:coverage`, which execute
+  third-party package code.
+
 ### Fixed — `.husky/pre-push` guarded the wrong thing (2026-08-14)
 
 The hook decided from `git symbolic-ref --short HEAD` (what is checked out)
@@ -59,7 +94,11 @@ flagged three pre-existing `lint/style/useNodejsImportProtocol` violations
 on lines this change did not otherwise alter (`fs`, `path`, and a
 `require('fs')`). They are now imported as `node:fs` / `node:path`.
 
-### Known issue — `pnpm typecheck` remains red (pre-existing)
+### Known issue — `pnpm typecheck` remains red (pre-existing) — RESOLVED 2026-08-14
+
+> Resolved by the CI entry at the top of this file, along the structural lines this
+> note predicted: per-package `tsconfig.json` for the three packages that lacked one,
+> and the root pass scoped to the root-level TS files.
 
 Not caused by, and not fixed by, the above. The script is
 `tsc --noEmit -p tsconfig.json && pnpm -r exec tsc --noEmit`. The root
