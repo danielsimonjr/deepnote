@@ -37,6 +37,8 @@
   "useGitignore": true,
   "version": "0.2",
   "words": [
+    "GHSA",
+    "Ghsas",
     "awsathena",
     "bijective",
     "Braund",
