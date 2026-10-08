@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Security — one advisory ignored because no patched release exists
+
+`pnpm audit` reported braces GHSA-vfj7-8cjw-p6xm (`<=3.0.3`, patched range empty). It enters through
+`tailwindcss 3 > chokidar 3 > braces`, a development-only watch path. No version fixes it, and a
+`chokidar` 4 override breaks the tailwind 3 watch globs. The audit now ignores that one GHSA through
+`pnpm.auditConfig.ignoreGhsas`. Remove the entry when braces publishes a fix.
+
 ### Fixed — CI now runs on this fork, and is green rather than red-on-arrival (2026-08-14)
 
 GitHub disables inherited workflows on a fork, so `ci.yml` had **never run** since
