@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Security — vitest, vite 8 and @vitest/mocker advisories cleared
+
+`pnpm audit` reported 8 advisories on the test tool chain: `vite` 8.0.16 (path `vitest > vite`, patched from
+8.1.6) and `@vitest/mocker` 4.1.11 (patched from 4.1.12). `vitest` lists `vite` as a peer dependency. A
+version override did not move it, because pnpm kept the `vite` instance that the lockfile already held.
+The root `package.json` now declares `vite` 8.1.6 as a development dependency, so `vitest` runs on it.
+`vitest` and `@vitest/coverage-v8` are at 4.1.12.
+
+The root typecheck failed with these versions: `node:path`, `__dirname` and `URL` were not found, because
+`types` in the root `tsconfig.json` named only `vitest`. It now names `node` as well, and the root files
+state the Node types that they use. The 5 advisories on `packages/web > vite` (6.4.3, patched from 6.4.4)
+are outside this change. A separate dependency update for `vite` 6 clears them.
+
 ### Security — one advisory ignored because no patched release exists
 
 `pnpm audit` reported braces GHSA-vfj7-8cjw-p6xm (`<=3.0.3`, patched range empty). It enters through
