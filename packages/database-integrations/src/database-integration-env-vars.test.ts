@@ -2953,6 +2953,7 @@ describe('Database integration env variables', () => {
               id: 'my-unknown',
               name: 'My Unknown Connection',
               metadata: {
+                // @ts-expect-error the metadata of the unknown type is checked against the closest known type
                 test: 'my-test',
               },
             },

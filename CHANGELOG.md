@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Security — zod 4 clears the last audit advisory
+
+`zod` 3.25.76 (path `packages/blocks > zod`) had one advisory, fixed from 4.6.6. The three packages that use `zod`
+(`blocks`, `database-integrations` and `convert`) now use 4.6.7. `pnpm audit` and `pnpm audit --prod` report no known
+vulnerabilities.
+
+Changes that `zod` 4 needs in the code:
+
+- `z.record` takes a key schema and a value schema. The five calls with one argument, in `blocks` and in `convert`, are now
+  `z.record(z.string(), z.unknown())`.
+- A `zod` 4 issue path can hold a symbol. `getLocationHint` narrows the path element to a number before it prints it.
+- The typecheck of one test in `database-integrations` now reports a second type error on the metadata of the unknown
+  integration type. The test has a second `@ts-expect-error` for it.
+
 ### Security — body-parser, qs and dompurify advisories cleared
 
 `pnpm audit` reported 6 advisories on the default branch. Five are cleared here:

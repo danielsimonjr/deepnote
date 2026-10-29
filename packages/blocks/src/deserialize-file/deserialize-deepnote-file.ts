@@ -46,14 +46,17 @@ export class DeepnoteFileParseError extends Error {
     const path = issue.path
 
     // Try to extract block ID or notebook name for better context
+    // A zod 4 path element is a string, a number or a symbol. Narrow the element first, then print it.
     const blockIndex = path.indexOf('blocks')
-    if (blockIndex !== -1 && typeof path[blockIndex + 1] === 'number') {
-      return ` (block index: ${path[blockIndex + 1]})`
+    const blockPosition = blockIndex !== -1 ? path[blockIndex + 1] : undefined
+    if (typeof blockPosition === 'number') {
+      return ` (block index: ${blockPosition})`
     }
 
     const notebookIndex = path.indexOf('notebooks')
-    if (notebookIndex !== -1 && typeof path[notebookIndex + 1] === 'number') {
-      return ` (notebook index: ${path[notebookIndex + 1]})`
+    const notebookPosition = notebookIndex !== -1 ? path[notebookIndex + 1] : undefined
+    if (typeof notebookPosition === 'number') {
+      return ` (notebook index: ${notebookPosition})`
     }
 
     return ''

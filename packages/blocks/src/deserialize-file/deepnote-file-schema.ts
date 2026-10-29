@@ -5,8 +5,8 @@ import { blockMetadataSchema } from './block-metadata-schemas'
 // Using z.unknown() is safer than z.any() as it requires explicit type assertions
 export const blockOutputSchema = z
   .object({
-    data: z.record(z.unknown()).optional(),
-    metadata: z.record(z.unknown()).optional(),
+    data: z.record(z.string(), z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
     name: z.string().optional(),
     output_type: z.string().optional(),
     text: z.union([z.string(), z.array(z.string())]).optional(),
