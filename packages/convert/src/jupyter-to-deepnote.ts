@@ -14,15 +14,15 @@ export interface ConvertIpynbFilesToDeepnoteFileOptions {
 const ipynbCellSchema = z.object({
   cell_type: z.enum(['code', 'markdown', 'raw']),
   execution_count: z.number().nullable().optional(),
-  metadata: z.record(z.unknown()).default({}),
-  outputs: z.array(z.record(z.unknown())).default([]),
+  metadata: z.record(z.string(), z.unknown()).default({}),
+  outputs: z.array(z.record(z.string(), z.unknown())).default([]),
   source: z.union([z.string(), z.array(z.string())]),
 })
 
 // Zod schema for Jupyter notebook file
 const ipynbFileSchema = z.object({
   cells: z.array(ipynbCellSchema),
-  metadata: z.record(z.unknown()).default({}),
+  metadata: z.record(z.string(), z.unknown()).default({}),
   nbformat: z.number(),
   nbformat_minor: z.number(),
 })

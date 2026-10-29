@@ -204,4 +204,4 @@ export const blockMetadataSchema = z
     markdownCellMetadataSchema,
     separatorBlockMetadataSchema,
   ])
-  .or(z.record(z.unknown())) // Fallback for unknown block types - still better than z.any()
+  .or(z.record(z.string(), z.unknown())) // Fallback for unknown block types - still better than z.any()
