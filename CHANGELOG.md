@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Security — body-parser, qs and dompurify advisories cleared
+
+`pnpm audit` reported 6 advisories on the default branch. Five are cleared here:
+
+- `body-parser` 1.20.6 (path `packages/server > express > body-parser`, patched from 1.20.9, denial of service). A new override,
+  `body-parser@<1.20.9: ^1.20.9`, keeps Express 4 on the 1.x line. The lockfile holds 1.20.9.
+- `qs` 6.16.0 (path `packages/server > express > qs`, patched from 6.16.1, denial of service in `qs.stringify`). The `qs`
+  override is now `6.16.1`, the oldest patched release. It is inside the `~6.16.0` range of `body-parser` 1.20.9. The lockfile holds 6.16.1.
+- `dompurify` 3.4.16 (path `packages/web > dompurify`, patched from 3.4.17): 1 critical, 1 high and 1 low advisory. The `web`
+  range is `^3.4.17`. The old override `^3.4.0` kept the lockfile on 3.4.16, so the override floor is now `>=3.4.17`.
+
+One advisory stays open: `zod` 3.25.76 (path `packages/blocks > zod`, fixed only in 4.x from 4.6.6). The fix is a major version
+change of `zod` in three packages and needs its own change.
+
 ### Security — vitest, vite and @vitest/mocker advisories cleared
 
 `pnpm audit` reported 8 advisories on the test tool chain: `vite` 8.0.16 (path `vitest > vite`, patched from
